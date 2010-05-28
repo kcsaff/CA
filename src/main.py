@@ -4,8 +4,9 @@ import numpy
 from exmod import xx, life
 
 def main():
-    size = (2500, 800)
-    screen = pygame.display.set_mode((0,0), pygame.DOUBLEBUF | pygame.FULLSCREEN | pygame.HWSURFACE)
+    screen = pygame.display.set_mode((1000,1000), pygame.DOUBLEBUF)
+    size = screen.get_size()
+    print size
     pixels = surfarray.pixels2d(screen)
     #pixels[:,::3] = (0,255,255)
 

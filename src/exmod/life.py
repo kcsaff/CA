@@ -23,6 +23,9 @@ def brainlike(birth, decay):
     
     mdecay = 2 * (decay + 1)
     
+    if mdecay > 256:
+        mdecay = 256
+    
     for i in range(0x10000):
         if i & 0x10:
             lookup[i] = 2 % mdecay
@@ -49,3 +52,9 @@ def vote():
 def brain():
     
     return brainlike([2], 1)
+
+def stitch_torus(array):
+    array[-1,:] = array[1,:]
+    array[0,:] = array[-2,:]
+    array[:,-1] = array[:,1]
+    array[:,0] = array[:,-2]

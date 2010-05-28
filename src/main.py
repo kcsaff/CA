@@ -2,9 +2,10 @@ import pygame, sys
 from pygame import surfarray
 import numpy
 from exmod import xx, life
+import time
 
 def main():
-    screen = pygame.display.set_mode((1000,1000), pygame.DOUBLEBUF)
+    screen = pygame.display.set_mode((1400,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
     size = screen.get_size()
     print size
     pixels = surfarray.pixels2d(screen)
@@ -19,6 +20,8 @@ def main():
     palette = (0, 0xFFFFFF, 0xFF0000)
     lookup = life.brain()
     
+    clock = pygame.time.Clock()
+    
     while 1:
         for event in pygame.event.get():
             if event.type in (pygame.KEYDOWN, pygame.QUIT): 
@@ -26,10 +29,17 @@ def main():
             
         #pixels[:,:] = numpy.random.randint(0, 0x1000000, size=pixels.shape)
         pixels[:,:] = numpy.take(palette, field0)
-        xx.evolve(field0, field1, lookup)
-        field0, field1 = field1, field0
-        #xx.randomize(pixels)
         pygame.display.flip()
+        
+        for iteration in range(1):
+            xx.evolve(field0, field1, lookup)
+            life.stitch_torus(field1)
+            field0, field1 = field1, field0
+            
+        clock.tick()
+        print clock.get_fps()
+        
+        #xx.randomize(pixels)
     
     return
 

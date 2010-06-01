@@ -50,13 +50,13 @@ def main():
         for event in pygame.event.get():
             if event.type in (pygame.KEYDOWN, pygame.QUIT): 
                 sys.exit()
-            elif event.type is pygame.MOUSEBUTTONDOWN:
+            elif event.type is pygame.MOUSEBUTTONDOWN and event.button == 1:
                 began_click = event.pos
-            elif began_click and event.type is pygame.MOUSEMOTION:
+            elif began_click and event.type is pygame.MOUSEMOTION and 1 in event.buttons:
                 origin = [origin[i] - event.pos[i] + began_click[i] 
                           for i in range(2)]
                 began_click = event.pos
-            elif event.type is pygame.MOUSEBUTTONUP:
+            elif event.type is pygame.MOUSEBUTTONUP and event.button == 1:
                 origin = [origin[i] - event.pos[i] + began_click[i] 
                           for i in range(2)]
                 began_click = None

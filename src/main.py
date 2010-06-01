@@ -7,8 +7,6 @@ import time
 def simple_display(pixels, palette, field):
     pixels[:,:] = numpy.take(palette, field)
     pygame.display.flip()
-    
-
 
 def main():
     screen = pygame.display.set_mode((1400,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
@@ -21,7 +19,6 @@ def main():
     field1 = numpy.zeros(shape=size, dtype=numpy.uint8)
     field0[:,:] = numpy.random.randint(0, 2, size=field0.shape)
     field1[:,:] = field0.copy()
-    
     
     palette = (0, 0xFFFFFF, 0xFF0000)
     lookup = life.brain()

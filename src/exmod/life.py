@@ -53,8 +53,8 @@ def brain():
     
     return brainlike([2], 1)
 
-def stitch_torus(array):
-    array[-1,:] = array[1,:]
-    array[0,:] = array[-2,:]
-    array[:,-1] = array[:,1]
-    array[:,0] = array[:,-2]
+def stitch_torus(array, margin = 1):
+    array[-margin:,:] = array[margin:margin * 2,:]
+    array[:margin,:] = array[-margin * 2:-margin,:]
+    array[:,-margin:] = array[:,margin:margin * 2]
+    array[:,:margin] = array[:,-margin * 2:-margin]

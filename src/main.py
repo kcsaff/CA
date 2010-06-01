@@ -3,7 +3,7 @@ from pygame import surfarray
 import numpy
 from exmod import xx, life
 import time
-from topology import torus, projective_plane
+from topology import torus, projective_plane, rectangle
 
 def simple_display(pixels, palette, field):
     pixels[:,:] = numpy.take(palette, field)
@@ -140,7 +140,7 @@ def main():
     palette = (0, 0xFFFFFF, 0xFF0000)
     lookup = life.life()
     
-    topology = torus
+    topology = rectangle
     #topology = projective_plane
     
     clock = pygame.time.Clock()
@@ -150,8 +150,8 @@ def main():
     #display = simple_displayer()
     display = scrollable_displayer(location, topology.map_slice)
 
-    #current_tool = drag_scroll_tool(location)
-    current_tool = draw_tool(location, topology.map_point, field0)
+    current_tool = drag_scroll_tool(location)
+    #current_tool = draw_tool(location, topology.map_point, field0)
     
     while 1:
         current_tool.handle_events()

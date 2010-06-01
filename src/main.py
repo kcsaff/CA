@@ -35,7 +35,7 @@ def main():
         for iteration in range(1):
             xx.evolve(field0, field1, lookup)
             field0, field1 = field1, field0
-            life.stitch_torus(field0)
+            life.stitch_torus_1(field0)
             
         clock.tick()
         print clock.get_fps()

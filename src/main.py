@@ -25,7 +25,11 @@ class scrollable_displayer(object):
                 next_x = min(x + view.shape[0], pixels.shape[0])
                 next_y = min(y + view.shape[1], pixels.shape[1])
                 pixels[x:next_x, y:next_y] = numpy.take(palette, view[:next_x-x,:next_y-y])
+                if next_y <= y:
+                    break
                 y = next_y
+            if next_x <= x:
+                break
             x = next_x
         pygame.display.flip()
         
@@ -62,8 +66,8 @@ class drag_scroll_tool(tool):
             self.began_click = None
 
 def main():
-    screen = pygame.display.set_mode((1400,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
-    size = screen.get_size()
+    screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
+    size = [z / 10 for z in screen.get_size()]
     print size
     pixels = surfarray.pixels2d(screen)
     #pixels[:,::3] = (0,255,255)
@@ -76,7 +80,7 @@ def main():
     palette = (0, 0xFFFFFF, 0xFF0000)
     lookup = life.life()
     
-    topology = torus
+    topology = projective_plane
     
     clock = pygame.time.Clock()
     

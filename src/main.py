@@ -4,6 +4,12 @@ import numpy
 from exmod import xx, life
 import time
 
+def simple_display(pixels, palette, field):
+    pixels[:,:] = numpy.take(palette, field)
+    pygame.display.flip()
+    
+
+
 def main():
     screen = pygame.display.set_mode((1400,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
     size = screen.get_size()
@@ -27,14 +33,12 @@ def main():
             if event.type in (pygame.KEYDOWN, pygame.QUIT): 
                 sys.exit()
             
-        #pixels[:,:] = numpy.random.randint(0, 0x1000000, size=pixels.shape)
-        pixels[:,:] = numpy.take(palette, field0)
-        pygame.display.flip()
+        simple_display(pixels, palette, field0)
         
         for iteration in range(1):
             xx.evolve(field0, field1, lookup)
-            life.stitch_torus(field1)
             field0, field1 = field1, field0
+            life.stitch_torus(field0)
             
         clock.tick()
         print clock.get_fps()

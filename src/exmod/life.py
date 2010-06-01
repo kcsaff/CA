@@ -61,9 +61,9 @@ def stitch_torus(array, margin = 1):
     
 def stitch_torus_1(array):
     array[-1,:] = array[1,:]
-    array[0,:] = array[-1,:]
+    array[0,:] = array[-2,:]
     array[:,-1] = array[:,1]
-    array[:,0] = array[:,-1]
+    array[:,0] = array[:,-2]
     
 def map_torus(point, array, margin = 1):
     return (point[0] % (array.shape[0] - margin*2),

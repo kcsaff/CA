@@ -3,7 +3,7 @@ from pygame import surfarray
 import numpy
 from exmod import xx, life
 import time
-
+from topology import torus, projective_plane
 
 def simple_display(pixels, palette, field):
     pixels[:,:] = numpy.take(palette, field)
@@ -76,7 +76,7 @@ def main():
     palette = (0, 0xFFFFFF, 0xFF0000)
     lookup = life.life()
     
-    topology = life.torus
+    topology = torus
     
     clock = pygame.time.Clock()
     

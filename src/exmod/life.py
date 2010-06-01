@@ -52,27 +52,3 @@ def vote():
 def brain():
     
     return brainlike([2], 1)
-
-class torus(object):
-    @classmethod
-    def stitch(cls, array, margin = 1):
-        array[-margin:,:] = array[margin:margin * 2,:]
-        array[:margin,:] = array[-margin * 2:-margin,:]
-        array[:,-margin:] = array[:,margin:margin * 2]
-        array[:,:margin] = array[:,-margin * 2:-margin]
-    @classmethod
-    def stitch_1(cls, array, margin = 1):
-        array[-1,:] = array[1,:]
-        array[0,:] = array[-2,:]
-        array[:,-1] = array[:,1]
-        array[:,0] = array[:,-2]
-    @classmethod
-    def map_point(cls, point, array, margin = 1):
-        return (point[0] % (array.shape[0] - margin*2),
-                point[1] % (array.shape[1] - margin*2))
-    @classmethod
-    def map_slice(cls, upper_left, array, margin = 1):
-        x0, y0 = cls.map_point(upper_left, array, margin)
-        x1, y1 = (array.shape[0] - margin*2,
-                  array.shape[1] - margin*2)
-        return array[x0:x1, y0:y1]

@@ -69,3 +69,8 @@ def map_torus(point, array, margin = 1):
     return (point[0] % (array.shape[0] - margin*2),
             point[1] % (array.shape[1] - margin*2))
 
+def map_torus_slice(upper_left, array, margin = 1):
+    x0, y0 = map_torus(upper_left, array, margin)
+    x1, y1 = (array.shape[0] - margin*2,
+              array.shape[1] - margin*2)
+    return array[x0:x1, y0:y1]

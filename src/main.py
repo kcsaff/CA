@@ -123,24 +123,27 @@ class drag_and_zoom_tool(drag_scroll_tool):
             self._fix_zoom()
         else:
             drag_scroll_tool.handle_event(self, event)
-                        
+              
 class draw_tool(tool):
     
-    def __init__(self, location, map, field):
+    def __init__(self, location, map, fields, surface):
         self.location = location
         self.map = map
-        self.field = field
+        self.fields = fields
         self.last_point= None
+        self.surface = surface
         
     def _point(self, event):
-        return [self.location.center[i] + event.pos[i] for i in (0, 1)]
+        return [self.location.center[i] + (event.pos[i] - self.surface.get_size()[i] // 2) / self.location.zoom
+                for i in (0, 1)]
     
     def _map(self, point):
-        return self.map(point, self.field)
+        return self.map(point, self.fields[0])
     
     def _draw(self, point0, point1 = None):
         if point1 is None or point0 == point1:
-            self.field[self._map(point0)] = 1
+            for field in self.fields:
+                field[self._map(point0)] = 1
             return
         
         diff = [abs(point0[i] - point1[i]) for i in (0, 1)]
@@ -169,6 +172,27 @@ class draw_tool(tool):
             self._draw(self.last_point, self._point(event))
             self.last_point = None
             
+    def handle_events(self):
+        tool.handle_events(self)
+        if self.last_point:
+            self._draw(self.last_point)
+       
+class draw_and_zoom_tool(draw_tool):
+    
+    def _fix_zoom(self):
+        if self.location.zoom >= 1:
+            self.location.zoom = int(round(self.location.zoom))
+    
+    def handle_event(self, event):
+        if event.type is pygame.MOUSEBUTTONDOWN and event.button == 4:
+            self.location.zoom *= 2
+            self._fix_zoom()
+        elif event.type is pygame.MOUSEBUTTONDOWN and event.button == 5:
+            self.location.zoom /= 2.0
+            self._fix_zoom()
+        else:
+            draw_tool.handle_event(self, event)
+                                    
 
 
 def main():
@@ -192,26 +216,32 @@ def main():
     
     clock = pygame.time.Clock()
     speed_of_light = 60 #pixels/second.
+    generation = 0
+    iteration = 0
     
     location = locator([x // 2 for x in size])
     
     #display = simple_displayer()
     display = scrollable_zoomable_displayer(location, topology.map_slice)
 
-    current_tool = drag_and_zoom_tool(location)
-    #current_tool = draw_tool(location, topology.map_point, field0)
+    #current_tool = drag_and_zoom_tool(location)
+    current_tool = draw_and_zoom_tool(location, topology.map_point, (field0, field1), screen)
     
     while 1:
         current_tool.handle_events()
             
         display(pixels, palette, field0)
         
-        for _ in range(1):
-            xx.evolve(field0, field1, lookup)
-            field0, field1 = field1, field0
-            topology.stitch(field0)
+        if location.zoom <= 1 or iteration % location.zoom == 0:
+            for _ in range(1):
+                xx.evolve(field0, field1, lookup)
+                field0, field1 = field1, field0
+                topology.stitch(field0)
+                generation += 1
             
-        clock.tick(speed_of_light / location.zoom)
+        iteration += 1
+            
+        clock.tick(speed_of_light)
         print clock.get_fps()
         
         #xx.randomize(pixels)

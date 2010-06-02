@@ -11,6 +11,8 @@ def simple_display(pixels, palette, field):
     
 class locator(object):
     origin = [0, 0]
+    zoom = 1
+    zoom_offset = [0, 0]
     
 class simple_displayer(object):
         
@@ -28,6 +30,8 @@ class scrollable_displayer(object):
         self.fun = fun
         
     def display(self, pixels, palette, field):
+        if isinstance(pixels, pygame.Surface):
+            pixels = surfarray.pixels2d(pixels)
         x = y = 0
         next_x = next_y = 0
         while x < pixels.shape[0]:
@@ -49,6 +53,22 @@ class scrollable_displayer(object):
     def __call__(self, *args):
         self.display(*args)
     
+            
+class scrollable_zoomable_displayer(scrollable_displayer):
+    
+    temp_surface = None
+        
+    def display(self, pixels, palette, field):
+        if self.location.zoom  == 1:
+            return scrollable_displayer.display(self, pixels, palette, field)
+        else:
+            temp_shape = [d // self.location.zoom + 1 for d in pixels.shape]
+            if self.temp_surface is None or self.temp_surface.get_size() != temp_shape:
+                self.temp_surface = pygame.Surface(temp_shape, depth=32)
+            scrollable_displayer.display(self, self.temp_surface, palette, field)
+            pygame.transform.scale(self.temp_surface, pixels.shape, pygame.display.get_surface())
+            
+    
 class tool(object):
     def handle_event(self, event):
         if event.type in (pygame.KEYDOWN, pygame.QUIT): 
@@ -63,21 +83,41 @@ class drag_scroll_tool(tool):
     def __init__(self, location):
         self.location = location
         self.began_click = None
+        self.began_origin = None
     
     def handle_event(self, event):
         tool.handle_event(self, event)
         
         if event.type is pygame.MOUSEBUTTONDOWN and event.button == 1:
             self.began_click = event.pos
+            self.began_origin = self.location.origin
         elif self.began_click and event.type is pygame.MOUSEMOTION and 1 in event.buttons:
-            self.location.origin = [self.location.origin[i] - event.pos[i] + self.began_click[i] 
+            self.location.origin = [self.began_origin[i] 
+                                    + (self.began_click[i] - event.pos[i]) // self.location.zoom
                       for i in range(2)]
-            self.began_click = event.pos
         elif event.type is pygame.MOUSEBUTTONUP and event.button == 1:
-            self.location.origin = [self.location.origin[i] - event.pos[i] + self.began_click[i] 
+            self.location.origin = [self.began_origin[i] 
+                                    + (self.began_click[i] - event.pos[i]) // self.location.zoom
                       for i in range(2)]
             self.began_click = None
+            self.began_origin = None
             
+class drag_and_zoom_tool(drag_scroll_tool):
+    
+    def _fix_zoom(self):
+        if self.location.zoom >= 1:
+            self.location.zoom = int(round(self.location.zoom))
+    
+    def handle_event(self, event):
+        if event.type is pygame.MOUSEBUTTONDOWN and event.button == 4:
+            self.location.zoom *= 2
+            self._fix_zoom()
+        elif event.type is pygame.MOUSEBUTTONDOWN and event.button == 5:
+            self.location.zoom /= 2.0
+            self._fix_zoom()
+        else:
+            drag_scroll_tool.handle_event(self, event)
+                        
 class draw_tool(tool):
     
     def __init__(self, location, map, field):
@@ -148,9 +188,9 @@ def main():
     location = locator()
     
     #display = simple_displayer()
-    display = scrollable_displayer(location, topology.map_slice)
+    display = scrollable_zoomable_displayer(location, topology.map_slice)
 
-    current_tool = drag_scroll_tool(location)
+    current_tool = drag_and_zoom_tool(location)
     #current_tool = draw_tool(location, topology.map_point, field0)
     
     while 1:

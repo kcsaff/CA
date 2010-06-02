@@ -183,11 +183,12 @@ def main():
     field0[:,:] = numpy.random.randint(0, 2, size=field0.shape)
     field1[:,:] = field0.copy()
     
-    palette = (0, 0xFFFFFF, 0xFF0000)
-    lookup = life.life()
+    palette = (0, 0xFFFFFF, 0xFF0000, 0, 0xCC9900)
+    lookup = life.starwars()
     
-    topology = rectangle
+    #topology = rectangle
     #topology = projective_plane
+    topology = torus
     
     clock = pygame.time.Clock()
     speed_of_light = 60 #pixels/second.

@@ -10,9 +10,9 @@ def simple_display(pixels, palette, field):
     pygame.display.flip()
     
 class locator(object):
-    origin = [0, 0]
     zoom = 1
-    zoom_offset = [0, 0]
+    def __init__(self, center=[0,0]):
+        self.center = center
     
 class simple_displayer(object):
         
@@ -34,10 +34,13 @@ class scrollable_displayer(object):
             pixels = surfarray.pixels2d(pixels)
         x = y = 0
         next_x = next_y = 0
+        
+        origin = [self.location.center[i] - pixels.shape[i] // 2 for i in (0,1)]
+        
         while x < pixels.shape[0]:
             y = next_y = 0
             while y < pixels.shape[1]:
-                view = self.fun((self.location.origin[0] + x, self.location.origin[1] + y),
+                view = self.fun((origin[0] + x, origin[1] + y),
                                 field, 1)
                 next_x = min(x + view.shape[0], pixels.shape[0])
                 next_y = min(y + view.shape[1], pixels.shape[1])
@@ -86,24 +89,24 @@ class drag_scroll_tool(tool):
     def __init__(self, location):
         self.location = location
         self.began_click = None
-        self.began_origin = None
+        self.began_center = None
     
     def handle_event(self, event):
         tool.handle_event(self, event)
         
         if event.type is pygame.MOUSEBUTTONDOWN and event.button == 1:
             self.began_click = event.pos
-            self.began_origin = self.location.origin
+            self.began_center = self.location.center
         elif self.began_click and event.type is pygame.MOUSEMOTION and 1 in event.buttons:
-            self.location.origin = [self.began_origin[i] 
+            self.location.center = [self.began_center[i] 
                                     + (self.began_click[i] - event.pos[i]) // self.location.zoom
                       for i in range(2)]
         elif event.type is pygame.MOUSEBUTTONUP and event.button == 1:
-            self.location.origin = [self.began_origin[i] 
+            self.location.center = [self.began_center[i] 
                                     + (self.began_click[i] - event.pos[i]) // self.location.zoom
                       for i in range(2)]
             self.began_click = None
-            self.began_origin = None
+            self.began_center = None
             
 class drag_and_zoom_tool(drag_scroll_tool):
     
@@ -130,7 +133,7 @@ class draw_tool(tool):
         self.last_point= None
         
     def _point(self, event):
-        return [self.location.origin[i] + event.pos[i] for i in (0, 1)]
+        return [self.location.center[i] + event.pos[i] for i in (0, 1)]
     
     def _map(self, point):
         return self.map(point, self.field)
@@ -166,11 +169,11 @@ class draw_tool(tool):
             self._draw(self.last_point, self._point(event))
             self.last_point = None
             
-    
+
 
 def main():
     screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
-    size = [z / 1 for z in screen.get_size()]
+    size = screen.get_size()
     print size
     pixels = surfarray.pixels2d(screen)
     #pixels[:,::3] = (0,255,255)
@@ -181,14 +184,15 @@ def main():
     field1[:,:] = field0.copy()
     
     palette = (0, 0xFFFFFF, 0xFF0000)
-    lookup = life.brain()
+    lookup = life.life()
     
-    #topology = rectangle
-    topology = projective_plane
+    topology = rectangle
+    #topology = projective_plane
     
     clock = pygame.time.Clock()
+    speed_of_light = 60 #pixels/second.
     
-    location = locator()
+    location = locator([x // 2 for x in size])
     
     #display = simple_displayer()
     display = scrollable_zoomable_displayer(location, topology.map_slice)
@@ -206,7 +210,7 @@ def main():
             field0, field1 = field1, field0
             topology.stitch(field0)
             
-        clock.tick()
+        clock.tick(speed_of_light / location.zoom)
         print clock.get_fps()
         
         #xx.randomize(pixels)

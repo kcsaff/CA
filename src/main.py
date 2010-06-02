@@ -66,7 +66,10 @@ class scrollable_zoomable_displayer(scrollable_displayer):
             if self.temp_surface is None or self.temp_surface.get_size() != temp_shape:
                 self.temp_surface = pygame.Surface(temp_shape, depth=32)
             scrollable_displayer.display(self, self.temp_surface, palette, field)
-            pygame.transform.scale(self.temp_surface, pixels.shape, pygame.display.get_surface())
+            if self.location.zoom > 1:
+                pygame.transform.scale(self.temp_surface, pixels.shape, pygame.display.get_surface())
+            else: #Way zoomed out.
+                pygame.transform.smoothscale(self.temp_surface, pixels.shape, pygame.display.get_surface())
             
     
 class tool(object):
@@ -178,10 +181,10 @@ def main():
     field1[:,:] = field0.copy()
     
     palette = (0, 0xFFFFFF, 0xFF0000)
-    lookup = life.life()
+    lookup = life.brain()
     
-    topology = rectangle
-    #topology = projective_plane
+    #topology = rectangle
+    topology = projective_plane
     
     clock = pygame.time.Clock()
     

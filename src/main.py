@@ -3,6 +3,8 @@ from pygame import surfarray
 import numpy
 from exmod import xx, life
 
+import format
+
 from tool import *
 from display import *
 
@@ -14,26 +16,46 @@ class locator(object):
         self.center = center
 
 from optparse import OptionParser
-
+parser = OptionParser()
 
 def main():
+    
+    descriptor = {}
+    options, args = parser.parse_args()
+    for filename in args:
+        descriptor.update(format.read(filename))
+    
     screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
     size = screen.get_size()
-    print size
     pixels = surfarray.pixels2d(screen)
     #pixels[:,::3] = (0,255,255)
 
-    field0 = numpy.zeros(shape=size, dtype=numpy.uint8)
-    field1 = numpy.zeros(shape=size, dtype=numpy.uint8)
-    field0[:,:] = numpy.random.randint(0, 2, size=field0.shape)
-    field1[:,:] = field0.copy()
+    if 'field' not in descriptor:
+        field0 = numpy.zeros(shape=size, dtype=numpy.uint8)
+        field1 = numpy.zeros(shape=size, dtype=numpy.uint8)
+        field0[:,:] = numpy.random.randint(0, 2, size=field0.shape)
+        field1[:,:] = field0.copy()
+    else:
+        field0 = descriptor['field'].copy()
+        field1 = descriptor['field'].copy()
+        
+    print field0.shape
     
     palette = (0, 0xFFFFFF, 0xFF0000, 0, 0xCC9900)
-    lookup = life.starwars()
     
-    #topology = rectangle
-    #topology = projective_plane
-    topology = torus
+    if 'evolve' not in descriptor:
+        evolve = xx.evolve
+        table = life.starwars()
+    else:
+        evolve = descriptor['evolve']
+        table = descriptor['table']
+    
+    if 'topology' not in descriptor:
+        #topology = rectangle
+        #topology = projective_plane
+        topology = torus
+    else:
+        topology = descriptor['topology']
     
     clock = pygame.time.Clock()
     speed_of_light = 60 #pixels/second.
@@ -55,7 +77,7 @@ def main():
         
         if location.zoom <= 1 or iteration % location.zoom == 0:
             for _ in range(1):
-                xx.evolve(field0, field1, lookup)
+                evolve(field0, field1, table)
                 field0, field1 = field1, field0
                 topology.stitch(field0)
                 generation += 1
@@ -63,7 +85,7 @@ def main():
         iteration += 1
             
         clock.tick(speed_of_light)
-        print clock.get_fps()
+        #print clock.get_fps()
         
         #xx.randomize(pixels)
     

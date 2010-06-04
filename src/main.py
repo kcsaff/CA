@@ -6,7 +6,7 @@ from exmod import xx, life
 import format
 
 from tool import *
-from display import *
+from display import create_display
 
 from topology import torus, projective_plane, rectangle
   
@@ -25,9 +25,6 @@ def main():
     for filename in args:
         descriptor.update(format.read(filename))
     
-    screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
-    size = screen.get_size()
-    pixels = surfarray.pixels2d(screen)
     #pixels[:,::3] = (0,255,255)
 
     if 'field' not in descriptor:
@@ -62,12 +59,12 @@ def main():
     generation = 0
     iteration = 0
     
-    location = locator([x // 2 for x in size])
+    center = [x // 2 for x in field0.shape]
     
     #display = simple_displayer()
-    display = scrollable_zoomable_displayer(location, topology.map_slice)
+    display = create_display(descriptor, pygame)
 
-    current_tool = drag_and_zoom_tool(location)
+    current_tool = drag_and_zoom_tool(descriptor)
     #current_tool = draw_and_zoom_tool(location, topology.map_point, (field0, field1), screen)
     
     while 1:

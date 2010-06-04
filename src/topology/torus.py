@@ -1,7 +1,13 @@
 
 def stitch(array, margin = 1):
+    if isinstance(array, list):
+        for chart in array:
+            stitch(chart, margin)
+        return
+            
     if margin == 1: #optimization
         return stitch_1(array, margin)
+    
     array[-margin:,:] = array[margin:margin * 2,:]
     array[:margin,:] = array[-margin * 2:-margin,:]
     array[:,-margin:] = array[:,margin:margin * 2]

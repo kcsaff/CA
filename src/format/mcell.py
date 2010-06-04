@@ -1,4 +1,5 @@
 import logging, numpy
+from view import *
 
 #Basic MCell file format is ascii extension of Life 1.05.
 
@@ -148,16 +149,14 @@ def _get(data, key):
 def _interpret_raw(data):
     if 'MCell' not in data:
         raise ValueError, 'Not recognized as an MCell file.'
-    
-    request = {}
 
-    evolve, table = _create_rule(_get(data, 'GAME'), 
-                                 _get(data, 'RULE'), 
-                                 _get(data, 'CCOLORS'),
-                                 _get(data, 'COLORING'),
-                                 )
+    algorithm, table = _create_rule(_get(data, 'GAME'), 
+                                    _get(data, 'RULE'), 
+                                    _get(data, 'CCOLORS'),
+                                    _get(data, 'COLORING'),
+                                    )
     
-    field = _create_field(_get(data, 'BOARD'),
+    chart = _create_field(_get(data, 'BOARD'),
                           _get(data, 'L'))
     
     topology = _create_topology(_get(data, 'WRAP'))
@@ -170,22 +169,26 @@ def _interpret_raw(data):
     
     objects = _create_objects(_get(data, 'DIV'))
     
-    if evolve:
-        request['evolve'], request['table'] = evolve, table
-    if field is not None:
-        request['field'] = field
+    world = World()
+    view = View()
+    
+    if algorithm:
+        world.algorithm, world.table = algorithm, table
+    if chart is not None:
+        world.charts = [chart]
     if topology:
-        request['topology'] = topology
-    if palette:
-        request['palette'] = palette
-    if delay:
-        request['speed'] = 2.0 / delay
-    if description:
-        request['description'] = description
-    if objects:
-        request['objects'] = objects
+        world.topology = topology
         
-    return request
+    if palette:
+        view.palette = palette
+    if delay:
+        view.speed = 2.0 / delay
+    if description:
+        world.description = view.description = description
+    if objects:
+        world.objects = objects
+        
+    return world, view
         
 def read(file):
     if isinstance(file, str): #just a filename

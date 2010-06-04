@@ -6,6 +6,7 @@ from exmod import xx, life
 import format
 
 from tool import *
+from view import *
 from display import create_display
 
 from topology import torus, projective_plane, rectangle
@@ -18,70 +19,38 @@ class locator(object):
 from optparse import OptionParser
 parser = OptionParser()
 
+
 def main():
     
-    descriptor = {}
+    world, view = default_world(), default_view()
+    
     options, args = parser.parse_args()
     for filename in args:
-        descriptor.update(format.read(filename))
-    
-    #pixels[:,::3] = (0,255,255)
-
-    if 'field' not in descriptor:
-        field0 = numpy.zeros(shape=size, dtype=numpy.uint8)
-        field1 = numpy.zeros(shape=size, dtype=numpy.uint8)
-        field0[:,:] = numpy.random.randint(0, 2, size=field0.shape)
-        field1[:,:] = field0.copy()
-    else:
-        field0 = descriptor['field'].copy()
-        field1 = descriptor['field'].copy()
-        
-    print field0.shape
-    
-    palette = (0, 0xFFFFFF, 0xFF0000, 0, 0xCC9900)
-    
-    if 'evolve' not in descriptor:
-        evolve = xx.evolve
-        table = life.starwars()
-    else:
-        evolve = descriptor['evolve']
-        table = descriptor['table']
-    
-    if 'topology' not in descriptor:
-        #topology = rectangle
-        #topology = projective_plane
-        topology = torus
-    else:
-        topology = descriptor['topology']
+        new_world, new_view = format.read(filename)
+        world.update(new_world)
+        view.update(new_view)
     
     clock = pygame.time.Clock()
-    speed_of_light = 60 #pixels/second.
-    generation = 0
-    iteration = 0
-    
-    center = [x // 2 for x in field0.shape]
     
     #display = simple_displayer()
-    display = create_display(descriptor, pygame)
+    display = create_display(world, view, pygame)
 
-    current_tool = drag_and_zoom_tool(descriptor)
+    current_tool = drag_and_zoom_tool(view)
     #current_tool = draw_and_zoom_tool(location, topology.map_point, (field0, field1), screen)
+    
+    iteration = 0
     
     while 1:
         current_tool.handle_events()
             
-        display(pixels, palette, field0)
+        display(world, view)
         
-        if location.zoom <= 1 or iteration % location.zoom == 0:
-            for _ in range(1):
-                evolve(field0, field1, table)
-                field0, field1 = field1, field0
-                topology.stitch(field0)
-                generation += 1
+        if view.zoom <= 1 or iteration % view.zoom == 0:
+            world.evolve()
             
         iteration += 1
             
-        clock.tick(speed_of_light)
+        clock.tick(view.speed)
         #print clock.get_fps()
         
         #xx.randomize(pixels)

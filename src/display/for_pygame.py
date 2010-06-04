@@ -11,25 +11,24 @@ class simple_displayer(object):
         self.display(*args)          
             
 class scrollable_displayer(object):
-    def __init__(self, descriptor):
-        #self.location = descriptor['location']
-        #self.fun = descriptor['topology'].map_slice
+    def __init__(self):
             
         self.screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
         self.size = self.screen.get_size()
         self.pixels = surfarray.pixels2d(self.screen)
 
         
-    def display(self, descriptor):
+    def display(self, world, view):
         pixels = self.pixels
-        palette = descriptor['palette']
-        field = descriptor['field']
-        center = descriptor['center']
-        self.do_display(pixels, palette, field, center)
+        palette = view.palette
+        chart = world.charts[0]
+        center = view.center
+        fun = world.topology.map_slice
+        self.do_display(pixels, palette, chart, center, fun)
         
-    def do_display(self, pixels, palette, field, center):
-        if isinstance(self.pixels, pygame.Surface):
-            pixels = surfarray.pixels2d(self.pixels)
+    def do_display(self, pixels, palette, chart, center, fun):
+        if isinstance(pixels, pygame.Surface):
+            pixels = surfarray.pixels2d(pixels)
         x = y = 0
         next_x = next_y = 0
         
@@ -38,8 +37,8 @@ class scrollable_displayer(object):
         while x < pixels.shape[0]:
             y = next_y = 0
             while y < pixels.shape[1]:
-                view = self.fun((origin[0] + x, origin[1] + y),
-                                field, 1)
+                view = fun((origin[0] + x, origin[1] + y),
+                            chart, 1)
                 next_x = min(x + view.shape[0], pixels.shape[0])
                 next_y = min(y + view.shape[1], pixels.shape[1])
                 pixels[x:next_x, y:next_y] = numpy.take(palette, view[:next_x-x,:next_y-y])
@@ -59,20 +58,22 @@ class scrollable_zoomable_displayer(scrollable_displayer):
     
     temp_surface = None
         
-    def display(self, descriptor):
+    def display(self, world, view):
         pixels = self.pixels
-        palette = descriptor['palette']
-        field = descriptor['field']
-        center = descriptor['center']
+        palette = view.palette
+        chart = world.charts[0]
+        center = view.center
+        zoom = view.zoom
+        fun = world.topology.map_slice
         
-        if self.location.zoom  == 1:
-            return scrollable_displayer.display(self, pixels, palette, field, center)
+        if zoom == 1:
+            return scrollable_displayer.display(self, world, view)
         else:
-            temp_shape = [d // self.location.zoom + 1 for d in pixels.shape]
+            temp_shape = [d // zoom + 1 for d in pixels.shape]
             if self.temp_surface is None or self.temp_surface.get_size() != temp_shape:
                 self.temp_surface = pygame.Surface(temp_shape, depth=32)
-            scrollable_displayer.display(self, self.temp_surface, palette, field, center)
-            if self.location.zoom > 1:
+            scrollable_displayer.do_display(self, self.temp_surface, palette, chart, center, fun)
+            if zoom > 1:
                 pygame.transform.scale(self.temp_surface, pixels.shape, pygame.display.get_surface())
             else: #Way zoomed out.
                 pygame.transform.smoothscale(self.temp_surface, pixels.shape, pygame.display.get_surface())

@@ -4,6 +4,7 @@ import numpy
 from exmod import xx, life
 
 import format
+import run
 
 from tool import *
 from view import *
@@ -19,7 +20,6 @@ class locator(object):
 from optparse import OptionParser
 parser = OptionParser()
 
-
 def main():
     
     world, view = default_world(), default_view()
@@ -30,8 +30,6 @@ def main():
         world.update(new_world)
         view.update(new_view)
     
-    clock = pygame.time.Clock()
-    
     #display = simple_displayer()
     display = create_display(world, view, pygame)
 
@@ -40,22 +38,23 @@ def main():
     
     iteration = 0
     
-    while 1:
-        current_tool.handle_events()
-            
-        display(world, view)
-        
-        if view.zoom <= 1 or iteration % view.zoom == 0:
-            world.evolve()
-            
-        iteration += 1
-            
-        clock.tick(view.speed)
-        #print clock.get_fps()
-        
-        #xx.randomize(pixels)
+    def get_fps():
+        return view.speed
     
-    return
+    def go():
+        iteration = 0
+        while 1:
+            current_tool.handle_events()
+                
+            display(world, view)
+            
+            if view.zoom <= 1 or iteration % view.zoom == 0:
+                world.evolve()
+            
+            iteration += 1
+            yield
+            
+    run.run(go().next, get_fps, pygame)
 
 if __name__ == '__main__':
     main()

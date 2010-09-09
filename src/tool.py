@@ -16,7 +16,6 @@ def translate_pygame(event):
                             pos = event.pos, 
                             pressed = False))
     elif event.type is pygame.MOUSEMOTION:
-        print event.buttons
         for button in range(1, 3+1):
             if event.buttons[button - 1]:
                 result.append(Event('M%d~' % button,
@@ -37,7 +36,6 @@ def quit(*args, **kwargs):
 def handle_events(window, event_map):
     for pyevent in pygame.event.get():
         for event in translate_pygame(pyevent):
-            print event.type
             fun = event_map.get(event.type, do_nothing)
             fun(window, event)
     

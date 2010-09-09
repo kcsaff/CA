@@ -4,13 +4,13 @@ import pygame, sys
 class tool(object):
     couldnt_handle = object()
     
-    def handle_event(self, event):
+    def handle_event(self, event, window):
         if event.type in (pygame.KEYDOWN, pygame.QUIT): 
             sys.exit()
             
-    def handle_events(self):
+    def handle_events(self, window):
         for event in pygame.event.get():
-            self.handle_event(event)     
+            self.handle_event(event, window)     
 #            
 #class composite_tool(tool):
 #    
@@ -26,24 +26,23 @@ class tool(object):
 
 class drag_scroll_tool(tool):
     
-    def __init__(self, location):
-        self.location = location
+    def __init__(self):
         self.began_click = None
         self.began_center = None
     
-    def handle_event(self, event):
-        tool.handle_event(self, event)
+    def handle_event(self, event, window):
+        tool.handle_event(self, event, window)
         
         if event.type is pygame.MOUSEBUTTONDOWN and event.button == 1:
             self.began_click = event.pos
-            self.began_center = self.location.center
+            self.began_center = window.view.center
         elif self.began_click and event.type is pygame.MOUSEMOTION and 1 in event.buttons:
-            self.location.center = [self.began_center[i] 
-                                    + (self.began_click[i] - event.pos[i]) // self.location.zoom
+            window.view.center = [self.began_center[i] 
+                                    + (self.began_click[i] - event.pos[i]) // window.view.zoom
                       for i in range(2)]
         elif event.type is pygame.MOUSEBUTTONUP and event.button == 1:
-            self.location.center = [self.began_center[i] 
-                                    + (self.began_click[i] - event.pos[i]) // self.location.zoom
+            window.view.center = [self.began_center[i] 
+                                    + (self.began_click[i] - event.pos[i]) // window.view.zoom
                       for i in range(2)]
             self.began_click = None
             self.began_center = None
@@ -52,31 +51,30 @@ class drag_scroll_tool(tool):
             
 class drag_and_zoom_tool(drag_scroll_tool):
     
-    def _fix_zoom(self):
-        if self.location.zoom >= 1:
-            self.location.zoom = int(round(self.location.zoom))
+    def _fix_zoom(self, window):
+        if window.view.zoom >= 1:
+            window.view.zoom = int(round(window.view.zoom))
     
-    def handle_event(self, event):
+    def handle_event(self, event, window):
         if event.type is pygame.MOUSEBUTTONDOWN and event.button == 4:
-            self.location.zoom *= 2
-            self._fix_zoom()
+            window.view.zoom *= 2
+            self._fix_zoom(window)
         elif event.type is pygame.MOUSEBUTTONDOWN and event.button == 5:
-            self.location.zoom /= 2.0
-            self._fix_zoom()
+            window.view.zoom /= 2.0
+            self._fix_zoom(window)
         else:
-            drag_scroll_tool.handle_event(self, event)
+            drag_scroll_tool.handle_event(self, event, window)
               
 class draw_tool(tool):
     
-    def __init__(self, location, map, fields, surface):
-        self.location = location
+    def __init__(self, map, fields, surface):
         self.map = map
         self.fields = fields
         self.last_point= None
         self.surface = surface
         
-    def _point(self, event):
-        return [self.location.center[i] + (event.pos[i] - self.surface.get_size()[i] // 2) / self.location.zoom
+    def _point(self, event, window):
+        return [window.view.center[i] + (event.pos[i] - self.surface.get_size()[i] // 2) / window.view.zoom
                 for i in (0, 1)]
     
     def _map(self, point):
@@ -100,40 +98,40 @@ class draw_tool(tool):
                 x = int((1 - p) * point0[0] + p * point1[0])
                 self._draw((x, y))
     
-    def handle_event(self, event):
+    def handle_event(self, event, window):
         tool.handle_event(self, event)
         
         if event.type is pygame.MOUSEBUTTONDOWN and event.button == 1:
-            self.last_point = self._point(event)
+            self.last_point = self._point(event, window)
             self._draw(self.last_point)
         elif self.last_point and event.type is pygame.MOUSEMOTION and 1 in event.buttons:
-            next_point = self._point(event)
+            next_point = self._point(event, window)
             self._draw(self.last_point, next_point)
             self.last_point = next_point
         elif event.type is pygame.MOUSEBUTTONUP and event.button == 1:
-            self._draw(self.last_point, self._point(event))
+            self._draw(self.last_point, self._point(event, window))
             self.last_point = None
         else:
             return tool.couldnt_handle
             
-    def handle_events(self):
-        tool.handle_events(self)
+    def handle_events(self, window):
+        tool.handle_events(self, window)
         if self.last_point:
             self._draw(self.last_point)
        
 class draw_and_zoom_tool(draw_tool):
     
-    def _fix_zoom(self):
-        if self.location.zoom >= 1:
-            self.location.zoom = int(round(self.location.zoom))
+    def _fix_zoom(self, window):
+        if window.view.zoom >= 1:
+            window.view.zoom = int(round(window.view.zoom))
     
-    def handle_event(self, event):
+    def handle_event(self, event, window):
         if event.type is pygame.MOUSEBUTTONDOWN and event.button == 4:
-            self.location.zoom *= 2
-            self._fix_zoom()
+            window.view.zoom *= 2
+            self._fix_zoom(window)
         elif event.type is pygame.MOUSEBUTTONDOWN and event.button == 5:
-            self.location.zoom /= 2.0
-            self._fix_zoom()
+            window.view.zoom /= 2.0
+            self._fix_zoom(window)
         else:
             draw_tool.handle_event(self, event)
                                     

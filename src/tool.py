@@ -1,13 +1,28 @@
 import pygame, sys
+
     
 class tool(object):
+    couldnt_handle = object()
+    
     def handle_event(self, event):
         if event.type in (pygame.KEYDOWN, pygame.QUIT): 
             sys.exit()
             
     def handle_events(self):
         for event in pygame.event.get():
-            self.handle_event(event)        
+            self.handle_event(event)     
+#            
+#class composite_tool(tool):
+#    
+#    def __init__(self, *tools):
+#        self.tools = tools
+#        
+#    def handle_event(self, event):
+#        for tool in reversed(self.tools):
+#            if tool.handle_event(event) is not tool.couldnt_handle:
+#                break
+#        else:
+#            return tool.couldnt_handle
 
 class drag_scroll_tool(tool):
     
@@ -32,6 +47,8 @@ class drag_scroll_tool(tool):
                       for i in range(2)]
             self.began_click = None
             self.began_center = None
+        else:
+            return tool.couldnt_handle
             
 class drag_and_zoom_tool(drag_scroll_tool):
     
@@ -96,6 +113,8 @@ class draw_tool(tool):
         elif event.type is pygame.MOUSEBUTTONUP and event.button == 1:
             self._draw(self.last_point, self._point(event))
             self.last_point = None
+        else:
+            return tool.couldnt_handle
             
     def handle_events(self):
         tool.handle_events(self)

@@ -78,3 +78,4 @@ class scrollable_zoomable_displayer(scrollable_displayer):
             else: #Way zoomed out.
                 pygame.transform.smoothscale(self.temp_surface, pixels.shape, pygame.display.get_surface())
             
+            

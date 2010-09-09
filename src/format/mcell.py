@@ -1,5 +1,6 @@
 import logging, numpy
-from view import *
+from view import View
+from world import World
 
 #Basic MCell file format is ascii extension of Life 1.05.
 

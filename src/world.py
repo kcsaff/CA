@@ -20,11 +20,19 @@ class World(cascading_object):
                 self.algorithm(chart, scratch, self.table)
             self.charts, self._scratch_charts = self._scratch_charts, self.charts
             self.topology.stitch(self.charts)
+            for toy in self.toys:
+                toy.evolve(self)
             self.generation += 1
         
     def _create_scratch_charts(self):
         if self._scratch_charts is None:
             self._scratch_charts = [chart.copy() for chart in self.charts]
+            
+    def set(self, point, state):
+        print 'setting', point, state
+        mapped_point = self.topology.map_point(point, self.charts[0])
+        for chart in self.charts: #This can't be _quite_ right.
+            chart[mapped_point] = state       
             
 def default():
     result = World(source='default')
@@ -32,6 +40,6 @@ def default():
     result.charts = [_default_chart()]
     result.algorithm = xx.evolve
     result.table = life.life()
-    result.objects = []
+    result.toys = set()
     result.generation = 0
     return result

@@ -1,7 +1,13 @@
 import pygame, numpy
 from pygame import surfarray
+import tk_dialogs
 
-class simple_displayer(object):
+class tk_dialog_displayer(object):
+    def file_open(self):
+        tk_dialogs.file_open()
+    event = tk_dialogs.event
+
+class simple_displayer(tk_dialog_displayer):
         
     def display(self, pixels, palette, field):
         pixels[:,:] = numpy.take(palette, field)
@@ -10,7 +16,7 @@ class simple_displayer(object):
     def __call__(self, *args):
         self.display(*args)          
             
-class scrollable_displayer(object):
+class scrollable_displayer(tk_dialog_displayer):
     def __init__(self):
             
         self.screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)

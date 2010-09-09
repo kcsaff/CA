@@ -192,7 +192,7 @@ def _interpret_raw(data):
     return world, view
         
 def read(file):
-    if isinstance(file, str): #just a filename
+    if isinstance(file, (str, unicode)): #just a filename
         file = open(file, 'r')
     return _interpret_raw(_raw_read(file))
         

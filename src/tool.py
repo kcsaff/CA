@@ -1,31 +1,6 @@
-import pygame, sys
-from event import Event
-    
-            
-def translate_pygame(event):
-    result = []
-    if event.type is pygame.MOUSEBUTTONDOWN:
-        result.append(Event('M%d' % event.button,
-                            pos = event.pos, 
-                            pressed = True))
-        result.append(Event('M%d~' % event.button,
-                            pos = event.pos, 
-                            pressed = True))
-    elif event.type is pygame.MOUSEBUTTONUP:
-        result.append(Event('M%d~' % event.button,
-                            pos = event.pos, 
-                            pressed = False))
-    elif event.type is pygame.MOUSEMOTION:
-        for button in range(1, 3+1):
-            if event.buttons[button - 1]:
-                result.append(Event('M%d~' % button,
-                                    pos = event.pos, 
-                                    pressed = True))
-    elif event.type is pygame.QUIT:
-        result.append(Event('Quit'))
-    else:
-        result.append(Event('Unknown'))
-    return result
+import sys
+import events
+from toys.block import block
         
 def do_nothing(*args, **kwargs):
     return
@@ -34,11 +9,9 @@ def quit(*args, **kwargs):
     sys.exit()
 
 def handle_events(window, event_map):
-    for pyevent in pygame.event.get():
-        for event in translate_pygame(pyevent):
-            fun = event_map.get(event.type, do_nothing)
-            fun(window, event)
-    
+    for event in events.get([window.lib]):
+        fun = event_map.get(event.type, do_nothing)
+        fun(window, event)
     
 class mouse_handler(object):
     
@@ -81,39 +54,55 @@ class drag_scroll(mouse_handler):
 
            
 class drag_draw(mouse_handler):
+    
+    state = 1
+    toy = None
         
-    def _point(self, window, position):
-        return [window.view.center[i] + (position[i] - window.display.screen.get_size()[i] // 2) / window.view.zoom
-                for i in (0, 1)]
-    
-    def _map(self, window, point):
-        return window.world.topology.map_point(point, window.world.charts[0])
-    
     def _draw(self, window, point0, point1 = None):
         if point1 is None or point0 == point1:
-            for field in window.world.charts:
-                field[self._map(window, point0)] = 1
+            window.world.set(point0, self.state)
             return
         
         diff = [abs(point0[i] - point1[i]) for i in (0, 1)]
         if diff[0] >= diff[1]:
+            if point0[0] > point1[0]:
+                point0, point1 = point1, point0
             for x in range(point0[0], point1[0] + 1):
                 p = (x - point0[0]) * 1.0 / diff[0]
                 y = int((1 - p) * point0[1] + p * point1[1])
-                self._draw(window, (x, y))
+                window.world.set((x, y), self.state)
         else:
+            if point0[1] > point1[1]:
+                point0, point1 = point1, point0
             for y in range(point0[1], point1[1] + 1):
                 p = (y - point0[1]) * 1.0 / diff[1]
                 x = int((1 - p) * point0[0] + p * point1[0])
-                self._draw(window, (x, y))
+                window.world.set((x, y), self.state)
+        
+    def _make_toy(self, window, position):
+        self.toy = block(window.map_point(position), self.state)
+        window.world.toys.add(self.toy)
+        
+    def _destroy_toy(self, window):
+        if self.toy is not None:
+            window.world.toys.remove(self.toy)
+        self.toy = None
         
     def press(self, window, position):
         self._draw(window, 
-                   self._point(window, position))
+                   window.map_point(position))
+        self._make_toy(window, position)
     def drag(self, window, _, from_position, to_position):
+        self._destroy_toy(window)
         self._draw(window, 
-                   self._point(window, from_position), 
-                   self._point(window, to_position))
+                   window.map_point(from_position), 
+                   window.map_point(to_position))
+        self._make_toy(window, to_position)
+    def release(self, window, _, from_position, to_position):
+        self._destroy_toy(window)
+        self._draw(window, 
+                   window.map_point(from_position), 
+                   window.map_point(to_position))
 
            
 def __fix_zoom(window):
@@ -129,10 +118,14 @@ def zoom_out(window, event):
     window.view.zoom /= 2.0
     __fix_zoom(window)
     
+def open_file(window, event):
+    window.display.file_open()
+    
 drag_map = {'M1~': drag_scroll(),
             'M3~': drag_draw(),
             'M4': zoom_in,
             'M5': zoom_out,
+            #'o': open_file,
             'Quit': quit,
             }
            

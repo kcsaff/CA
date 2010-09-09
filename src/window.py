@@ -1,7 +1,7 @@
 from cascading_object import cascading_object
 from run import run
 import world, view, display
-from tool import *
+import tool
 import format
   
 class Window(cascading_object):
@@ -12,7 +12,7 @@ class Window(cascading_object):
     def _run(self):
         iteration = 0
         while 1:
-            self.tool.handle_events(self)
+            tool.handle_events(self, self.tool)
                 
             self.display(self.world, self.view)
             
@@ -42,7 +42,8 @@ def create(options, args, lib):
     window.display = display.create(window.world, window.view, lib)
 
     #window.tool = drag_and_zoom_tool()
-    window.tool = draw_and_zoom_tool()
+    #window.tool = draw_and_zoom_tool()
     #current_tool = draw_and_zoom_tool(location, topology.map_point, (field0, field1), screen)
+    window.tool = tool.drag_map
 
     return window

@@ -1,11 +1,22 @@
-import Queue
+import multiprocessing, Queue
 
 __events = Queue.Queue()
 
 class Event(object):
     def __init__(self, type, **kwargs):
         self.type = type
-        self.__dict__.update(kwargs)
+        self.kwargs = kwargs
+        
+    def __getattr__(self, attr):
+        return self.kwargs.get(attr)
+    
+    def format_args(self):
+        args = ["'%s'" % self.type]
+        args.extend(['%s=%s' % (key, repr(value)) for key, value in self.kwargs.items()])
+        return ', '.join(args)
+    
+    def __repr__(self):
+        return 'Event(%s)' % self.format_args()
         
 def __handle_pygame_all(pygame):
     for event in pygame.event.get():
@@ -55,4 +66,7 @@ def get(libs):
     except Queue.Empty:
         pass
     return result
+
+def put(an_event):
+    __events.put(an_event)
     

@@ -29,7 +29,7 @@ class World(cascading_object):
             self._scratch_charts = [chart.copy() for chart in self.charts]
             
     def set(self, point, state):
-        print 'setting', point, state
+        #print 'setting', point, state
         mapped_point = self.topology.map_point(point, self.charts[0])
         for chart in self.charts: #This can't be _quite_ right.
             chart[mapped_point] = state       

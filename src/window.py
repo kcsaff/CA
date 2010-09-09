@@ -10,21 +10,15 @@ class Window(cascading_object):
     def get_fps(self):
         return self.view.speed
     
+    def file_open(self, filename):
+        new_world, new_view = format.read(filename)
+        self.world.update(new_world)
+        self.view.update(new_view)        
+    
     def _run(self):
         iteration = 0
         while 1:
             tool.handle_events(self, self.tool)
-            
-            try:
-                while 1:
-                    display_event = self.display.event.get(False)
-                    print display_event.filename
-                    if display_event.filename:
-                        new_world, new_view = format.read(display_event.filename)
-                        self.world.update(new_world)
-                        self.view.update(new_view)                    
-            except Queue.Empty:
-                pass
                 
             self.display(self.world, self.view)
             
@@ -50,9 +44,7 @@ def create(options, args, lib):
     window.lib = lib
     
     for filename in args:
-        new_world, new_view = format.read(filename)
-        window.world.update(new_world)
-        window.view.update(new_view)
+        window.file_open(filename)
     
     #display = simple_displayer()
     window.display = display.create(window.world, window.view, lib)

@@ -1,5 +1,6 @@
 import sys
 import events
+import tk_dialogs
 from toys.block import block
         
 def do_nothing(*args, **kwargs):
@@ -27,7 +28,7 @@ class mouse_handler(object):
             else:
                 self.drag(window, self.first_position, self.from_position, event.pos)
                 self.from_position = event.pos
-        else:
+        elif self.first_position:
             self.release(window, self.first_position, self.from_position, event.pos)
             self.from_position = event.pos
             self.first_position = None
@@ -48,6 +49,8 @@ class drag_scroll(mouse_handler):
     def press(self, window, position):
         self.began_center = window.view.center
     def drag(self, window, first_position, _, to_position):
+        if not self.began_center:
+            self.press(window, first_position)
         window.view.center = [self.began_center[i] 
                               + (first_position[i] - to_position[i]) // window.view.zoom
                               for i in range(2)]
@@ -118,14 +121,15 @@ def zoom_out(window, event):
     window.view.zoom /= 2.0
     __fix_zoom(window)
     
-def open_file(window, event):
-    window.display.file_open()
+def file_open(window, event):
+    window.file_open(event.filename)
     
 drag_map = {'M1~': drag_scroll(),
             'M3~': drag_draw(),
             'M4': zoom_in,
             'M5': zoom_out,
-            #'o': open_file,
+            'o': tk_dialogs.file_open_dialog,
+            'file_open': file_open,
             'Quit': quit,
             }
            

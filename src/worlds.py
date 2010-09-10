@@ -1,6 +1,6 @@
 import numpy
 from topology import torus
-from algorithms.exmod import xx, life
+from algorithms.xx2 import algorithm, life
 from cascading_object import cascading_object
 
 def _default_chart():
@@ -46,7 +46,7 @@ def default():
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]
-    result.algorithm = xx.evolve
+    result.algorithm = algorithm.evolve
     result.table = life.life()
     result.toys = set()
     result.generation = 0

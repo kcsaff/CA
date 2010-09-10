@@ -62,18 +62,18 @@ def _parse_rule(rulestring, format):
     return result
 
 def _create_rule(game, rule, ccolors, coloring):
-    from algorithms.exmod import life, xx
+    from algorithms.xx2 import life, algorithm
     print rule
     if coloring != 1:
         raise ValueError, 'Alternate coloring not yet supported.'
     if game == 'Life':
-        evolve = xx.evolve
+        evolve = algorithm.evolve
         survival, birth = _parse_rule(rule, 's/s')
         print birth, survival
         table = life.lifelike(set(birth), set(survival))
         return evolve, table, range(2)
     elif game == 'Generations':
-        evolve = xx.evolve
+        evolve = algorithm.evolve
         survival, birth, count = _parse_rule(rule, 's/s/n')
         print birth, survival, count
         table = life.brainlike(set(birth), set(survival), count - 2)

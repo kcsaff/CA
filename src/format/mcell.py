@@ -61,24 +61,43 @@ def _parse_rule(rulestring, format):
         
     return result
 
-def _create_rule(game, rule, ccolors, coloring):
+def _Life_xx2(game, rule, ccolors, coloring):
     from algorithms.xx2 import life, algorithm
+    evolve = algorithm.evolve
+    survival, birth = _parse_rule(rule, 's/s')
+    print birth, survival
+    table = life.life(set(birth), set(survival))
+    return evolve, table, range(2)
+
+def _Generations_xx2(game, rule, ccolors, coloring):
+    from algorithms.xx2 import life, algorithm
+    evolve = algorithm.evolve
+    survival, birth, count = _parse_rule(rule, 's/s/n')
+    print birth, survival, count
+    table = life.brain(set(birth), set(survival), count - 2)
+    states = range(2) + range(2, (count - 1) * 2, 2)     
+    return evolve, table, states
+
+def _Generations_xx6(game, rule, ccolors, coloring):
+    from algorithms.xx6 import life, algorithm
+    evolve = algorithm.evolve
+    survival, birth, count = _parse_rule(rule, 's/s/n')
+    print birth, survival, count
+    table = life.brain(set(birth), set(survival), count - 2)
+    states = range(count)     
+    return evolve, table, states
+
+__rules = {'Life': _Life_xx2,
+           'Generations': _Generations_xx6,
+           }
+
+def _create_rule(game, rule, ccolors, coloring):
     print rule
     if coloring != 1:
         raise ValueError, 'Alternate coloring not yet supported.'
-    if game == 'Life':
-        evolve = algorithm.evolve
-        survival, birth = _parse_rule(rule, 's/s')
-        print birth, survival
-        table = life.lifelike(set(birth), set(survival))
-        return evolve, table, range(2)
-    elif game == 'Generations':
-        evolve = algorithm.evolve
-        survival, birth, count = _parse_rule(rule, 's/s/n')
-        print birth, survival, count
-        table = life.brainlike(set(birth), set(survival), count - 2)
-        states = range(2) + range(2, (count - 1) * 2, 2)     
-        return evolve, table, states
+    rule_generator = __rules.get(game, None)
+    if rule_generator is not None:
+        return rule_generator(game, rule, ccolors, coloring)
     else:
         raise ValueError, 'Game "%s" not yet implemented.' % game
             

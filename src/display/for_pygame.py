@@ -36,20 +36,29 @@ class scrollable_displayer(object):
         
         origin = [center[i] - pixels.shape[i] // 2 for i in (0,1)]
         
-        while x < pixels.shape[0]:
-            y = next_y = 0
-            while y < pixels.shape[1]:
-                view = fun((origin[0] + x, origin[1] + y),
-                            chart, 1)
-                next_x = min(x + view.shape[0], pixels.shape[0])
-                next_y = min(y + view.shape[1], pixels.shape[1])
-                pixels[x:next_x, y:next_y] = numpy.take(palette, view[:next_x-x,:next_y-y])
-                if next_y <= y:
+        try:
+            while x < pixels.shape[0]:
+                y = next_y = 0
+                while y < pixels.shape[1]:
+                    view = fun((origin[0] + x, origin[1] + y),
+                                chart, 1)
+                    next_x = min(x + view.shape[0], pixels.shape[0])
+                    next_y = min(y + view.shape[1], pixels.shape[1])
+                    pixels[x:next_x, y:next_y] = numpy.take(palette, view[:next_x-x,:next_y-y])
+                    if next_y <= y:
+                        break
+                    y = next_y
+                if next_x <= x:
                     break
-                y = next_y
-            if next_x <= x:
-                break
-            x = next_x
+                x = next_x
+        except IndexError as ie:
+            #Didn't have a palette entry for some value, figure it out.
+            states = set()
+            for x in range(chart.shape[0]):
+                for y in range(chart.shape[1]):
+                    states.add(chart[x, y])
+            print states
+            raise ie
         pygame.display.flip()
         
     def __call__(self, *args):

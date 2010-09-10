@@ -1,6 +1,5 @@
 import numpy
 from topology import torus
-from algorithms.xx2 import algorithm, life
 from cascading_object import cascading_object
 
 def _default_chart():
@@ -43,6 +42,7 @@ class World(cascading_object):
         return self.charts[0][mapped_point]    
             
 def default():
+    from algorithms.xx2 import algorithm, life
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]

@@ -3,7 +3,7 @@
 This algorithm handles 256 states, packed at 1 cell per byte.
 A cell is considered 'active' if its low bit is 1.  Otherwise, it is inactive.
 The state of a cell after evolution depends on its complete 8-bite state
-and on the activity of the 8 cells in its Margolus(1) neighborhood.
+and on the activity of the 8 cells in its Moore(1) neighborhood.
 
 The bits for the lookup table are as follows:
 [ 0][ 1][ 2]

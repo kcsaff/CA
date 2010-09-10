@@ -13,6 +13,9 @@ def _mix(amount, color0, color1):
     return result
 
 def _gradient(size, color0, color1):
+    if size == 1:
+        return [color0]
+    
     return [_mix(i / (size - 1.0), color0, color1) 
             for i in range(size)]
 

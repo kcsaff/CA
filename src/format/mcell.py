@@ -30,9 +30,25 @@ def _rle_iterator(rle):
             if value is not END_LINE and not (0 <= value < 256):
                 logger.warn("Invalid character '%s' (#%d) seen in RLE mcell file",
                             x, i)
-            for a in range(max(1, runlength)):
+            for _ in range(max(1, runlength)):
                 yield value
             runlength = modifier = 0
+            
+def _rle_mirek_iterator(rle):
+    runlength = 0
+    for i, x in enumerate(rle):
+        if '0' <= x <= '9': #runlength encoding
+            if runlength:
+                runlength *= 10
+            runlength += ord(x) - ord('0')
+        else: #An actual value: a is 0 and b, c, d, and up are 1, 2, 3, etc
+            value = ord(x) - ord('a')
+            if not (0 <= value < 256):
+                logger.warn("Invalid character '%s' (#%d) seen in RLE mcell file",
+                            x, i)
+            for _ in range(max(1, runlength)):
+                yield value
+            runlength = 0
 
 def _raw_read(input):
     result = {}
@@ -45,7 +61,7 @@ def _raw_read(input):
     return result
 
     
-def _parse_rule(rulestring, format):
+def _parse_life_rule(rulestring, format):
     formats = format.split('/')
     rulestrings = rulestring.split('/')
     if len(formats) != len(rulestrings):
@@ -61,10 +77,22 @@ def _parse_rule(rulestring, format):
         
     return result
 
+def _parse_mirek_rule(rulestring):
+    
+    def my_split(part):
+        part = part.strip()
+        return part[0], part[1:]
+    
+    parts = dict([my_split(part) for part in rulestring.split(',')])
+    if 'C' in parts:
+        parts['C'] = max(2, int(parts['C'])) #count of number of states
+        
+    return parts
+
 def _Life_xx2(game, rule, ccolors, coloring):
     from algorithms.xx2 import life, algorithm
     evolve = algorithm.evolve
-    survival, birth = _parse_rule(rule, 's/s')
+    survival, birth = _parse_life_rule(rule, 's/s')
     print birth, survival
     table = life.life(set(birth), set(survival))
     return evolve, table, range(2)
@@ -72,7 +100,7 @@ def _Life_xx2(game, rule, ccolors, coloring):
 def _Generations_xx2(game, rule, ccolors, coloring):
     from algorithms.xx2 import life, algorithm
     evolve = algorithm.evolve
-    survival, birth, count = _parse_rule(rule, 's/s/n')
+    survival, birth, count = _parse_life_rule(rule, 's/s/n')
     print birth, survival, count
     table = life.brain(set(birth), set(survival), count - 2)
     states = range(2) + range(2, (count - 1) * 2, 2)     
@@ -81,14 +109,33 @@ def _Generations_xx2(game, rule, ccolors, coloring):
 def _Generations_xx6(game, rule, ccolors, coloring):
     from algorithms.xx6 import life, algorithm
     evolve = algorithm.evolve
-    survival, birth, count = _parse_rule(rule, 's/s/n')
+    survival, birth, count = _parse_life_rule(rule, 's/s/n')
     print birth, survival, count
     table = life.brain(set(birth), set(survival), count - 2)
     states = range(count)     
     return evolve, table, states
 
+def _General_binary_xx6(game, rule, ccolors, coloring):
+    from algorithms.xx6 import life, algorithm
+    evolve = algorithm.evolve
+    
+    parts = _parse_mirek_rule(rule)
+    birth = [x for x in _rle_mirek_iterator(parts['B'])]
+    survival = [x for x in _rle_mirek_iterator(parts['S'])]
+    count = parts['C']
+    print parts
+    
+    if parts['N'] in ['N', 'M']:
+        table = life.banks(birth, survival, count - 2)
+    else:
+        raise ValueError, 'Neighborhood "%s" not implemented for general binary.' % parts['N']
+    states = range(count)     
+    return evolve, table, states
+    
+
 __rules = {'Life': _Life_xx2,
            'Generations': _Generations_xx6,
+           'General binary': _General_binary_xx6,
            }
 
 def _create_rule(game, rule, ccolors, coloring):

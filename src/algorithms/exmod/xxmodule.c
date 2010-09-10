@@ -4,54 +4,6 @@
 
 static PyObject *ErrorObject;
 
-/* Function of two integers returning integer */
-
-PyDoc_STRVAR(xx_foo_doc,
-"foo(i,j)\n\
-\n\
-Return the sum of i and j.");
-
-static PyObject *
-xx_foo(PyObject *self, PyObject *args)
-{
-	long i, j;
-	long res;
-	if (!PyArg_ParseTuple(args, "ll:foo", &i, &j))
-		return NULL;
-	res = i+j; /* XXX Do something here */
-	return PyInt_FromLong(res);
-}
-
-PyDoc_STRVAR(xx_randomize_doc,
-"randomize(array)\n\
-\n\
-Randomize it.");
-
-static PyObject *
-xx_randomize(PyObject *self, PyObject *args)
-{
-	PyArrayObject *array;
-	int x, y;
-	int xstride, ystride;
-	int color;
-
-	if (!PyArg_ParseTuple(args, "O!",
-			&PyArray_Type, &array))
-		return NULL;
-	xstride = array-> strides[0];
-	ystride = array-> strides[1];
-	for (x = 0; x < array-> dimensions[0]; ++x)
-		for (y = 0; y < array-> dimensions[1]; ++y)
-		{
-			color ^= rand() & 0xFFF;
-			color <<= 12;
-			color ^= rand() & 0xFFF;
-			color &= 0xFFFFFF;
-			*((int*)&((array-> data)[x * xstride + y * ystride])) = color;
-		}
-	return PyFloat_FromDouble(1.0);
-}
-
 PyDoc_STRVAR(xx_evolve_doc,
 "evolve(input, output, lookup)\n\
 \n\
@@ -66,7 +18,7 @@ xx_evolve(PyObject *self, PyObject *args)
 	char h = 0;
 	unsigned xstride, ystride;
 	unsigned xa, x0, x1, xM;
-	unsigned ya, y0, y1, yM;
+	unsigned /*ya,*/ y0, y1, yM;
 	unsigned z;
 	char c, n, r;
 
@@ -115,10 +67,6 @@ xx_evolve(PyObject *self, PyObject *args)
 /* List of functions defined in the module */
 
 static PyMethodDef xx_methods[] = {
-	{"foo",		xx_foo,		METH_VARARGS,
-		 	xx_foo_doc},
-	{"randomize",		xx_randomize,		METH_VARARGS,
-			xx_randomize_doc},
 	{"evolve",		xx_evolve,		METH_VARARGS,
 			xx_evolve_doc},
 	{NULL,		NULL}		/* sentinel */

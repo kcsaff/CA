@@ -1,7 +1,6 @@
 import numpy
 from topology import torus
-from exmod import xx
-from exmod import life
+from algorithms.exmod import xx, life
 from cascading_object import cascading_object
 
 def _default_chart():

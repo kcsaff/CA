@@ -62,7 +62,7 @@ def _parse_rule(rulestring, format):
     return result
 
 def _create_rule(game, rule, ccolors, coloring):
-    from exmod import life, xx
+    from algorithms.exmod import life, xx
     print rule
     if coloring != 1:
         raise ValueError, 'Alternate coloring not yet supported.'

@@ -1,11 +1,17 @@
 from cascading_object import cascading_object
 from run import run
-import world, view, display
+import worlds, views, display
 import tool
 import format
 import Queue
+import tk_dialogs
+import sys
   
 class Window(cascading_object):
+    
+    last_filename = sys.argv[0]
+    
+    playing = True
     
     def get_fps(self):
         return self.view.speed
@@ -13,7 +19,14 @@ class Window(cascading_object):
     def file_open(self, filename):
         new_world, new_view = format.read(filename)
         self.world.update(new_world)
-        self.view.update(new_view)        
+        self.view.update(new_view)    
+        self.last_filename = filename    
+        
+    def file_open_dialog(self):
+        tk_dialogs.file_open_dialog(self.last_filename)
+        
+    def toggle_pause(self):
+        self.playing = not self.playing
     
     def _run(self):
         iteration = 0
@@ -22,8 +35,9 @@ class Window(cascading_object):
                 
             self.display(self.world, self.view)
             
-            if self.view.zoom <= 1 or iteration % self.view.zoom == 0:
-                self.world.evolve()
+            if self.playing:
+                if self.view.zoom <= 1 or iteration % self.view.zoom == 0:
+                    self.world.evolve()
             
             iteration += 1
             yield
@@ -39,7 +53,7 @@ def create(options, args, lib):
 
     window = Window()
     
-    window.world, window.view = world.default(), view.default()
+    window.world, window.view = worlds.default(), views.default()
     
     window.lib = lib
     

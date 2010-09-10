@@ -32,7 +32,11 @@ class World(cascading_object):
         #print 'setting', point, state
         mapped_point = self.topology.map_point(point, self.charts[0])
         for chart in self.charts: #This can't be _quite_ right.
-            chart[mapped_point] = state       
+            chart[mapped_point] = state   
+            
+    def get(self, point):
+        mapped_point = self.topology.map_point(point, self.charts[0])
+        return self.charts[0][mapped_point]    
             
 def default():
     result = World(source='default')

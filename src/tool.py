@@ -24,29 +24,32 @@ class mouse_handler(object):
             if not self.first_position:
                 self.first_position = event.pos
                 self.from_position = event.pos
-                self.press(window, self.from_position)
+                self.grab(window, self.from_position)
             else:
                 self.drag(window, self.first_position, self.from_position, event.pos)
                 self.from_position = event.pos
         elif self.first_position:
-            self.release(window, self.first_position, self.from_position, event.pos)
+            self.drop(window, self.first_position, self.from_position, event.pos)
             self.from_position = event.pos
             self.first_position = None
         
-    def press(self, window, position):
+    def grab(self, window, position):
         pass
     def drag(self, window, first_position, from_position, to_position):
         pass
-    def release(self, window, first_position, from_position, to_position):
+    def drop(self, window, first_position, from_position, to_position):
         self.drag(window, first_position, from_position, to_position)
 
+class query(mouse_handler):
+    def grab(self, window, position):
+        print window.world.get(window.map_point(position))
 
 class drag_scroll(mouse_handler):
     
     began_click = None
     began_center = None
     
-    def press(self, window, position):
+    def grab(self, window, position):
         self.began_center = window.view.center
     def drag(self, window, first_position, _, to_position):
         if not self.began_center:
@@ -91,7 +94,7 @@ class drag_draw(mouse_handler):
             window.world.toys.remove(self.toy)
         self.toy = None
         
-    def press(self, window, position):
+    def grab(self, window, position):
         self._draw(window, 
                    window.map_point(position))
         self._make_toy(window, position)
@@ -101,7 +104,7 @@ class drag_draw(mouse_handler):
                    window.map_point(from_position), 
                    window.map_point(to_position))
         self._make_toy(window, to_position)
-    def release(self, window, _, from_position, to_position):
+    def drop(self, window, _, from_position, to_position):
         self._destroy_toy(window)
         self._draw(window, 
                    window.map_point(from_position), 
@@ -124,11 +127,23 @@ def zoom_out(window, event):
 def file_open(window, event):
     window.file_open(event.filename)
     
+def file_open_dialog(window, event):
+    window.file_open_dialog()
+    
+def toggle_pause(window, event):
+    window.toggle_pause()
+    
+def step(window, event):
+    window.world.evolve()
+    
 drag_map = {'M1~': drag_scroll(),
+            'M2~': query(),
             'M3~': drag_draw(),
             'M4': zoom_in,
             'M5': zoom_out,
-            'o': tk_dialogs.file_open_dialog,
+            'o': file_open_dialog,
+            'p': toggle_pause,
+            ' ': step,
             'file_open': file_open,
             'Quit': quit,
             }

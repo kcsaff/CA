@@ -1,6 +1,6 @@
 import logging, numpy
-from view import View
-from world import World
+import views
+import worlds
 
 #Basic MCell file format is ascii extension of Life 1.05.
 
@@ -60,7 +60,7 @@ def _parse_rule(rulestring, format):
             raise ValueError, 'Unknown rule format "%s".' % f
         
     return result
-    
+
 def _create_rule(game, rule, ccolors, coloring):
     from exmod import life, xx
     print rule
@@ -71,13 +71,14 @@ def _create_rule(game, rule, ccolors, coloring):
         survival, birth = _parse_rule(rule, 's/s')
         print birth, survival
         table = life.lifelike(set(birth), set(survival))
-        return evolve, table
+        return evolve, table, range(2)
     elif game == 'Generations':
         evolve = xx.evolve
         survival, birth, count = _parse_rule(rule, 's/s/n')
         print birth, survival, count
         table = life.brainlike(set(birth), set(survival), count - 2)
-        return evolve, table        
+        states = range(2) + range(2, (count - 1) * 2, 2)     
+        return evolve, table, states
     else:
         raise ValueError, 'Game "%s" not yet implemented.' % game
             
@@ -151,14 +152,21 @@ def _interpret_raw(data):
     if 'MCell' not in data:
         raise ValueError, 'Not recognized as an MCell file.'
 
-    algorithm, table = _create_rule(_get(data, 'GAME'), 
-                                    _get(data, 'RULE'), 
-                                    _get(data, 'CCOLORS'),
-                                    _get(data, 'COLORING'),
-                                    )
+    algorithm, table, states = _create_rule(_get(data, 'GAME'), 
+                                            _get(data, 'RULE'), 
+                                            _get(data, 'CCOLORS'),
+                                            _get(data, 'COLORING'),
+                                            )
     
     chart = _create_field(_get(data, 'BOARD'),
                           _get(data, 'L'))
+    
+    #Fix states.
+    #The state numbers used to define the grid may be different
+    # from those we use internally, so we have to map them over.
+    for x in range(chart.shape[0]):
+        for y in range(chart.shape[1]):
+            chart[x,y] = states[chart[x,y]]
     
     topology = _create_topology(_get(data, 'WRAP'))
     
@@ -170,8 +178,8 @@ def _interpret_raw(data):
     
     objects = _create_objects(_get(data, 'DIV'))
     
-    world = World()
-    view = View()
+    world = worlds.World()
+    view = views.View()
     
     if algorithm:
         world.algorithm, world.table = algorithm, table
@@ -182,6 +190,8 @@ def _interpret_raw(data):
         
     if palette:
         view.palette = palette
+    else:
+        view.palette = views.palette.mcell(states)
     if delay:
         view.speed = 2.0 / delay
     if description:

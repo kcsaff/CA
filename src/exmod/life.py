@@ -32,9 +32,9 @@ def brainlike(birth, survival, decay):
                 lookup[i] = 1
             else:
                 lookup[i] = 2 % mdecay
-        elif i < 0x200: #dying
+        elif i < 0x200: #dead
             lookup[i] = bit_count[i & 0x1FF] in birth and 1 or 0
-        else: #dead
+        else: #dying
             lookup[i] = ((i >> 9) * 2 + 2) % mdecay
             
     return lookup

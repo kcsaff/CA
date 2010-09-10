@@ -3,7 +3,10 @@ import os.path, sys
 import shlex, subprocess
 
 def __doc_string_for_c(string):
-    return string.replace('\n', '\\n\n')
+    if string:
+        return string.replace('\n', '\\n\n')
+    else:
+        return 'No documentation provided.'
 
 def __define_function(modname, name, doc, definition):
     
@@ -109,17 +112,22 @@ def __save_c(path, #path to directory to save c file under.
                        function_list))
     f.close()
     
-def __create_setup(module_name):
+def __create_setup(path, module_name):
     result = """
 from distutils.core import setup, Extension
-
-setup (name = 'Ex',
-       version = '0.1',
-       description = 'Yes',
-       ext_modules = [Extension('{module_name}', '{filename}')],
-       include_dirs = ['C:/Python26/Lib/site-packages/numpy/core/include']) 
+#raw_input()
+try:
+    setup (name = 'Ex',
+           version = '0.1',
+           description = 'Yes',
+           ext_modules = [Extension('{module_name}', sources=['{filename}'])],
+           include_dirs = ['C:/Python26/Lib/site-packages/numpy/core/include']) 
+except Exception as e:
+    print 'Oh no!'
+    #raw_input()
+#raw_input()
     """.format(module_name=module_name,
-               filename=__c_filename(module_name))
+               filename=os.path.join(path, __c_filename(module_name)).replace('\\', '\\\\'))
     return result
     
 def __save_setup(path,#path to directory to save files under.
@@ -127,23 +135,34 @@ def __save_setup(path,#path to directory to save files under.
                  ):
     filename = os.path.join(path, 'setup.py')
     f = file(filename, 'w')
-    f.write(__create_setup(module_name))
+    f.write(__create_setup(path, module_name))
     f.close()
 
-def __build_inplace(path):
-    python = os.path.join(sys.exec_prefix, 'python')
+def __build_inplace(path, outpath=None):
+    outpath = outpath or path
+    python = sys.executable
     setup = os.path.join(path, 'setup.py')
+    output = file(os.path.join(path, 'log.txt'), 'w')
     the_call = '{python} {setup} build_ext --inplace'.format(python=python,
                                                              setup=setup)
-    result = subprocess.Popen(shlex.split(the_call))
+    the_call = the_call.replace('\\', '/') #hack for windows, shlex removes backslashes
+    print the_call
+    args = shlex.split(the_call)
+    print args
+    result = subprocess.Popen(args, 
+                              stdout=output, 
+                              stderr=subprocess.STDOUT,
+                              cwd=outpath).communicate()
     return result
 
-def generate_from_c(path,
+def __generate_from_c(path,
                         module_name, 
                         module_doc,
                         function_list, #list of tuples: (name, doc, definition)
                         ):
-    temp_path = os.path.join(path, 'temp')
+    temp_path = os.path.join(path, 'build')
+    if not os.path.exists(temp_path):
+        os.mkdir(temp_path)
     __save_c(temp_path,
              module_name,
              module_doc,
@@ -152,5 +171,19 @@ def generate_from_c(path,
     __save_setup(temp_path,
                  module_name,
                  )
+    __build_inplace(temp_path, path)
     
+def auto_generate(source_name, module_name = 'auto'):
+    #source is expected to be a module name, __name__
+    source = sys.modules[source_name]
+    module_doc = source.__doc__
+    function_list = source.functions
+    path = os.path.dirname(source.__file__)
+    __generate_from_c(path,
+                      module_name,
+                      module_doc,
+                      function_list,
+                      )
+    the_module = __import__(module_name, source.__dict__)
+    setattr(source, module_name, the_module)
     

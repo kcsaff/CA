@@ -179,11 +179,25 @@ def auto_generate(source_name, module_name = 'auto'):
     module_doc = source.__doc__
     function_list = source.functions
     path = os.path.dirname(source.__file__)
-    __generate_from_c(path,
-                      module_name,
-                      module_doc,
-                      function_list,
-                      )
+    
+    should_generate = True
+    mod_time = os.path.getmtime(source.__file__)
+    
+    #In Windows, output file is .pyd.
+    for extension in ['.pyd']:
+        filename = os.path.join(path, ''.join((module_name, extension)) )
+        if os.path.exists(filename):
+            last_time = os.path.getmtime(filename)
+            if mod_time <= last_time:
+                should_generate = False
+        
+    if should_generate:
+        __generate_from_c(path,
+                          module_name,
+                          module_doc,
+                          function_list,
+                          )
+        
     the_module = __import__(module_name, source.__dict__)
     setattr(source, module_name, the_module)
     

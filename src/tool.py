@@ -42,7 +42,8 @@ class mouse_handler(object):
 
 class query(mouse_handler):
     def grab(self, window, position):
-        print window.world.get(window.map_point(position))
+        point = window.map_point(position)
+        print '%s@%s' % (window.world.get(point), point)
 
 class drag_scroll(mouse_handler):
     

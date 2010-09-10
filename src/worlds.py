@@ -13,20 +13,25 @@ class World(cascading_object):
     _scratch_charts = None
     generation = 0
     
+    def _stitch(self):
+        self.topology.stitch(self.charts)
+        
     def evolve(self, generations = 1):
-        self._create_scratch_charts()
+        if self.generation == 0:
+            self._stitch()
+            self._create_scratch_charts()
+            
         for _ in range(generations):
             for chart, scratch in zip(self.charts, self._scratch_charts):
                 self.algorithm(chart, scratch, self.table)
             self.charts, self._scratch_charts = self._scratch_charts, self.charts
-            self.topology.stitch(self.charts)
+            self._stitch()
             for toy in self.toys:
                 toy.evolve(self)
             self.generation += 1
         
     def _create_scratch_charts(self):
-        if self._scratch_charts is None:
-            self._scratch_charts = [chart.copy() for chart in self.charts]
+        self._scratch_charts = [chart.copy() for chart in self.charts]
             
     def set(self, point, state):
         #print 'setting', point, state

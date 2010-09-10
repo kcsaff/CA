@@ -11,6 +11,7 @@ The bits for the lookup table are as follows:
 [ 6][ 7][ 8]
 
 Bits 9-15 are the remainder of the state, minus the activity bit.
+
 """
 
 import generate
@@ -73,5 +74,5 @@ functions = [
 
 
 generate.auto_generate(__name__, 'algorithm')
-    
+
     

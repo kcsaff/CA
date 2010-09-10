@@ -1,10 +1,10 @@
 
-import os.path, sys
+import os.path, sys, imp
 import shlex, subprocess
 
 def __doc_string_for_c(string):
     if string:
-        return string.replace('\n', '\\n\n')
+        return string.replace('\n', '\\n"\n"')
     else:
         return 'No documentation provided.'
 
@@ -180,24 +180,20 @@ def auto_generate(source_name, module_name = 'auto'):
     function_list = source.functions
     path = os.path.dirname(source.__file__)
     
-    should_generate = True
-    mod_time = os.path.getmtime(source.__file__)
-    
-    #In Windows, output file is .pyd.
-    for extension in ['.pyd']:
-        filename = os.path.join(path, ''.join((module_name, extension)) )
-        if os.path.exists(filename):
-            last_time = os.path.getmtime(filename)
-            if mod_time <= last_time:
-                should_generate = False
+    try:
+        _, found_module, _ = imp.find_module(module_name, [path])
+        if os.path.getmtime(found_module) < os.path.getmtime(source.__file__):
+            os.remove(found_module)
+            found_module = None
+    except ImportError:
+        found_module = None
         
-    if should_generate:
+    if not found_module:
         __generate_from_c(path,
                           module_name,
                           module_doc,
                           function_list,
                           )
-        
-    the_module = __import__(module_name, source.__dict__)
-    setattr(source, module_name, the_module)
+
+    setattr(source, module_name, __import__(module_name, source.__dict__))
     

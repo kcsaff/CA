@@ -53,19 +53,15 @@ def create(options, args, lib):
 
     window = Window()
     
-    window.world, window.view = worlds.default(), views.default()
+    window.world, window.view = worlds.water(), views.water()
     
     window.lib = lib
     
     for filename in args:
         window.file_open(filename)
     
-    #display = simple_displayer()
     window.display = display.create(window.world, window.view, lib)
 
-    #window.tool = drag_and_zoom_tool()
-    #window.tool = draw_and_zoom_tool()
-    #current_tool = draw_and_zoom_tool(location, topology.map_point, (field0, field1), screen)
     window.tool = tool.drag_map
 
     return window

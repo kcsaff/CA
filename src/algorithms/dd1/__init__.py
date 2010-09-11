@@ -1,7 +1,7 @@
 
 """
-This algorithm handles double-precision states, ranging from -1 to +1.
-Rules are defined using 10 weights, 2 modifiers, and 2 setpoints.
+This algorithm handles double-precision states.
+Rules are defined using 10 weights, 2 modifiers, 2 limits, and 2 setpoints.
 
 The first 9 weights describe the amount of each of the neighbors to
 use to generate the new value:
@@ -13,9 +13,11 @@ The tenth weight is the amount to weight the cell's second-to-last value.
 One modifier is the dampener; the total will be multiplied by this.
 The other modifier is the exciter; this will be added to the total.
 
+The limits identify what the minimum and maximum allowed values are.
+
 Finally, the two setpoints indicate what to do if the total goes out of range.
-One indicates what to set the value to if it goes below -1, the other
-if it goes above +1.
+One indicates what to set the value to if it goes below the min, the other
+if it goes above the max.
 """
 
 import generate
@@ -40,7 +42,7 @@ functions = [
     double excite;
 
     double z;
-
+    double rmin, rmax;
     double rn, rp;
 
     double *ind, *oud, *look;
@@ -72,9 +74,11 @@ functions = [
     d00d= look[9];
     damp= look[10];
     excite= look[11];
-    rn = look[12];
-    rp = look[13];
-
+    rmin = look[12];
+    rmax = look[13];
+    rn = look[14];
+    rp = look[15];
+    return PyFloat_FromDouble(1.0);
     for (x0 = xstride; x0 < xM; x0 += xstride)
     {
         xa = x0 - xstride;
@@ -95,9 +99,9 @@ functions = [
                 ind[x1 + y1] * d11 +
                 oud[x0 + y0] * d00d;
             z = z * damp + excite;
-            if (z < -1.0)
+            if (z < rmin)
                 z = rn;
-            else if (z > 1.0)
+            else if (z > rmax)
                 z = rp;
             oud[x0 + y0] = z;
         }

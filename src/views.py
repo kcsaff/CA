@@ -102,6 +102,8 @@ class palette(object):
            0xAA0000, 0xAA00AA, 0xAA5500, 0xAAAAAA,
            0x555555, 0x5555FF, 0x55FF55, 0x55FFFF,
            0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF)
+
+    grays = _gradient(256, 0x000000, 0xFFFFFF)
     
     @staticmethod
     def mcell(states = (0,1)):
@@ -122,4 +124,12 @@ def default():
     result.palette = palette.default
     result.speed = 60
     return result
-    
+
+def water():
+    result = View(source='water')
+    result.center = (0,0)
+    result.zoom = 1
+    result.palette = palette.grays
+    result.speed = 60
+    return result
+     

@@ -6,6 +6,12 @@ def _default_chart():
     chart = numpy.zeros(shape=(640, 480), dtype=numpy.uint8)
     chart[:,:] = numpy.random.randint(0, 2, size=chart.shape)
     return chart
+
+def _water_chart():
+    chart = numpy.zeros(shape=(100, 100), dtype=numpy.float)
+    chart[:,:] = numpy.random.rand(*chart.shape)
+    chart *= 255.9
+    return chart
     
 class World(cascading_object):
     _scratch_charts = None
@@ -48,6 +54,17 @@ def default():
     result.charts = [_default_chart()]
     result.algorithm = algorithm.evolve
     result.table = life.life()
+    result.toys = set()
+    result.generation = 0
+    return result          
+  
+def water():
+    from algorithms.dd1 import algorithm, life
+    result = World(source='water')
+    result.topology = torus
+    result.charts = [_water_chart()]
+    result.algorithm = algorithm.evolve
+    result.table = life.water()
     result.toys = set()
     result.generation = 0
     return result

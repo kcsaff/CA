@@ -64,7 +64,7 @@ def water():
     result.topology = torus
     result.charts = [_water_chart()]
     result.algorithm = algorithm.evolve
-    result.table = life.clouds()
+    result.table = life.boiling_water()
     result.toys = set()
     result.generation = 0
     return result

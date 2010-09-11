@@ -24,16 +24,16 @@ def boiling_water():
               0.0, 0.0]
     return numpy.asarray(lookup, dtype = numpy.float)
     
-def clouds():
+def dunes():
     
     lookup = [0.15, 0.30, 0.10,
               0.40, 0.00, 0.20,
               0.15, 0.30, 0.10,
               -0.7,
-              0.995, 
-              1,
+              1.0, 
+              0,
               0.0, 255.9,
-              0.0, 0.0]
+              0.0, 255.9]
     return numpy.asarray(lookup, dtype = numpy.float)
     
 def aurora():

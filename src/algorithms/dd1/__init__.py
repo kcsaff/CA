@@ -53,8 +53,8 @@ functions = [
             &PyArray_Type, &lookup
             ))
         return NULL;
-    xstride = input-> strides[0];
-    ystride = input-> strides[1];
+    xstride = input-> strides[0] >> 3;
+    ystride = input-> strides[1] >> 3;
 
     xM = (input-> dimensions[0] - 1) * xstride;
     yM = (input-> dimensions[1] - 1) * ystride;
@@ -78,7 +78,7 @@ functions = [
     rmax = look[13];
     rn = look[14];
     rp = look[15];
-    return PyFloat_FromDouble(1.0);
+    /*return PyFloat_FromDouble(1.0);/**/
     for (x0 = xstride; x0 < xM; x0 += xstride)
     {
         xa = x0 - xstride;
@@ -98,7 +98,8 @@ functions = [
                 ind[x0 + y1] * d01 +
                 ind[x1 + y1] * d11 +
                 oud[x0 + y0] * d00d;
-            z = z * damp + excite;
+            z *= damp;
+            z += excite;
             if (z < rmin)
                 z = rn;
             else if (z > rmax)

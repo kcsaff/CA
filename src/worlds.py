@@ -8,7 +8,7 @@ def _default_chart():
     return chart
 
 def _water_chart():
-    chart = numpy.zeros(shape=(100, 100), dtype=numpy.float)
+    chart = numpy.zeros(shape=(640, 480), dtype=numpy.float)
     chart[:,:] = numpy.random.rand(*chart.shape)
     chart *= 255.9
     return chart
@@ -64,7 +64,7 @@ def water():
     result.topology = torus
     result.charts = [_water_chart()]
     result.algorithm = algorithm.evolve
-    result.table = life.water()
+    result.table = life.clouds()
     result.toys = set()
     result.generation = 0
     return result

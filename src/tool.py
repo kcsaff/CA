@@ -16,7 +16,8 @@ def handle_events(window, event_map):
     
 class mouse_handler(object):
     
-    points = []
+    def __init__(self):
+        self.points = []
     
     def __call__(self, window, event):
         self.points.append(event.pos)

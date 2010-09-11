@@ -118,6 +118,9 @@ def _to_rgb(color):
     blue = (color & 0x0000FF) >> 0
     return (red, green, blue)
 
+def _from_rgb(color):
+    return (color[0] << 16) | (color[1] << 8) | (color[2] << 0)
+
 class palette(object):
     default = (0, 0xFFFFFF, 0xFF0000, 0, 0xCC9900)
     
@@ -131,6 +134,10 @@ class palette(object):
     @staticmethod
     def to_rgb(palette):
         return [_to_rgb(color) for color in palette]
+
+    @staticmethod
+    def from_rgb(palette):
+        return [_from_rgb(color) for color in palette]
     
     @staticmethod
     def mcell(states = (0,1)):

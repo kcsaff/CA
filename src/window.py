@@ -40,11 +40,12 @@ class Window(cascading_object):
         self.last_filename = filename    
     
     def file_save(self, filename):
-        format.save(filename, self.world, self.view)
+        format.write(filename, self.world, self.view)
         self.last_filename = filename    
         
     def file_open_dialog(self):
-        tk_dialogs.file_open_dialog(self.last_filename)
+        self.file_open('/home/kevin/temp.ca.zip')
+        #tk_dialogs.file_open_dialog(self.last_filename)
         
     def file_save_dialog(self):
         self.file_save('/home/kevin/temp.ca.zip')

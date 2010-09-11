@@ -15,6 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from mcell import read
-from native import save
+import mcell
+import native
+
+def read(filename):
+    if filename.endswith('.ca.zip'):
+        return native.read(filename)
+    else:
+        return mcell.read(filename)
+
+write = native.write
+
 

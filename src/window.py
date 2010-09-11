@@ -38,9 +38,17 @@ class Window(cascading_object):
         self.world.update(new_world)
         self.view.update(new_view)    
         self.last_filename = filename    
+    
+    def file_save(self, filename):
+        format.save(filename, self.world, self.view)
+        self.last_filename = filename    
         
     def file_open_dialog(self):
         tk_dialogs.file_open_dialog(self.last_filename)
+        
+    def file_save_dialog(self):
+        self.file_save('/home/kevin/temp.ca.zip')
+        #tk_dialogs.file_save_dialog(self.last_filename)
         
     def toggle_pause(self):
         self.playing = not self.playing
@@ -70,7 +78,7 @@ def create(options, args, lib):
 
     window = Window()
     
-    window.world, window.view = worlds.water(), views.water()
+    window.world, window.view = worlds.default(), views.default()
     
     window.lib = lib
     

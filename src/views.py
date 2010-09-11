@@ -112,6 +112,12 @@ def _mcell_many():
     Palette[192] = Palette[66]
     return Palette
 
+def _to_rgb(color):
+    red = (color & 0xFF0000) >> 16
+    green = (color & 0x00FF00) >> 8
+    blue = (color & 0x0000FF) >> 0
+    return (red, green, blue)
+
 class palette(object):
     default = (0, 0xFFFFFF, 0xFF0000, 0, 0xCC9900)
     
@@ -121,6 +127,10 @@ class palette(object):
            0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF)
 
     grays = _gradient(256, 0x000000, 0xFFFFFF)
+
+    @staticmethod
+    def to_rgb(palette):
+        return [_to_rgb(color) for color in palette]
     
     @staticmethod
     def mcell(states = (0,1)):

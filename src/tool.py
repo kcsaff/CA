@@ -141,6 +141,12 @@ def file_open(window, event):
 def file_open_dialog(window, event):
     window.file_open_dialog()
     
+def file_save(window, event):
+    window.file_save(event.filename)
+    
+def file_save_dialog(window, event):
+    window.file_save_dialog()
+    
 def toggle_pause(window, event):
     window.toggle_pause()
     
@@ -153,9 +159,11 @@ drag_map = {'M1~': drag_scroll(),
             'M4': zoom_in,
             'M5': zoom_out,
             'o': file_open_dialog,
+            's': file_save_dialog,
             'p': toggle_pause,
             ' ': step,
             'file_open': file_open,
+            'file_save': file_save,
             'Quit': quit,
             }
            

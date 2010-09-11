@@ -20,17 +20,17 @@ class mouse_handler(object):
     
     def __call__(self, window, event):
         self.points.append(event.pos)
-        self._call(window, self.points, event.pressed)
+        self._drag(window, self.points, event.pressed)
         if not event.pressed:
             self.points = []
 
-    def _call(self, window, points, pressed):
+    def _drag(self, window, points, pressed):
         if len(points) == 1:
             self.grab(window, points[0])
-        elif not pressed:
-            self.drop(window, points)
-        else:
+        elif pressed:
             self.drag(window, points, pressed)
+        else:
+            self.drop(window, points)
 
     def grab(self, window, point):
         self.drag(window, [point], True)

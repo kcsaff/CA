@@ -16,29 +16,28 @@ def handle_events(window, event_map):
     
 class mouse_handler(object):
     
-    first_position = None
-    from_position = None
+    points = []
     
     def __call__(self, window, event):
-        if event.pressed:
-            if not self.first_position:
-                self.first_position = event.pos
-                self.from_position = event.pos
-                self.grab(window, self.from_position)
-            else:
-                self.drag(window, self.first_position, self.from_position, event.pos)
-                self.from_position = event.pos
-        elif self.first_position:
-            self.drop(window, self.first_position, self.from_position, event.pos)
-            self.from_position = event.pos
-            self.first_position = None
-        
-    def grab(self, window, position):
+        self.points.append(event.pos)
+        self._call(window, self.points, event.pressed)
+        if not event.pressed:
+            self.points = []
+
+    def _call(self, window, points, pressed):
+        if len(points) == 1:
+            self.grab(window, points[0])
+        elif not pressed:
+            self.drop(window, points)
+        else:
+            self.drag(window, points, pressed)
+
+    def grab(self, window, point):
+        self.drag(window, [point], True)
+    def drag(self, window, points, pressed):
         pass
-    def drag(self, window, first_position, from_position, to_position):
-        pass
-    def drop(self, window, first_position, from_position, to_position):
-        self.drag(window, first_position, from_position, to_position)
+    def drop(self, window, points):
+        self.drag(window, points, False)
 
 class query(mouse_handler):
     def grab(self, window, position):
@@ -46,17 +45,13 @@ class query(mouse_handler):
         print '%s@%s' % (window.world.get(point), point)
 
 class drag_scroll(mouse_handler):
-    
-    began_click = None
     began_center = None
-    
-    def grab(self, window, position):
+
+    def grab(self, window, point):
         self.began_center = window.view.center
-    def drag(self, window, first_position, _, to_position):
-        if not self.began_center:
-            self.press(window, first_position)
+    def drag(self, window, points, _):
         window.view.center = [self.began_center[i] 
-                              + (first_position[i] - to_position[i]) // window.view.zoom
+                              + (points[0][i] - points[-1][i]) // window.view.zoom
                               for i in range(2)]
 
            
@@ -95,21 +90,18 @@ class drag_draw(mouse_handler):
             window.world.toys.remove(self.toy)
         self.toy = None
         
-    def grab(self, window, position):
-        self._draw(window, 
-                   window.map_point(position))
-        self._make_toy(window, position)
-    def drag(self, window, _, from_position, to_position):
+    def grab(self, window, point):
+        self._draw(window,
+                   window.map_point(point))
+        self._make_toy(window, point)
+        
+    def drag(self, window, points, pressed):
         self._destroy_toy(window)
         self._draw(window, 
-                   window.map_point(from_position), 
-                   window.map_point(to_position))
-        self._make_toy(window, to_position)
-    def drop(self, window, _, from_position, to_position):
-        self._destroy_toy(window)
-        self._draw(window, 
-                   window.map_point(from_position), 
-                   window.map_point(to_position))
+                   window.map_point(points[-2]), 
+                   window.map_point(points[-1]))
+        if pressed:
+            self._make_toy(window, points[-1])
 
            
 def __fix_zoom(window):

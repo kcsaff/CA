@@ -16,7 +16,7 @@
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
 import zipfile
-from lib import png
+from lib import png, fits
 from views import palette
 from StringIO import StringIO
 import numpy
@@ -32,6 +32,7 @@ import common
 #FITS (pyfits is available) for floating point data at some
 #point.
 
+
 class _reader(object):
 
     def __init__(self):
@@ -44,7 +45,7 @@ class _reader(object):
             self.atlases[atlasno].append([])
         self.atlases[atlasno][chartno] = chart
 
-    def _read_chart(self, name, resource):
+    def _read_chart_png(self, name, resource):
         nos = name.strip('chart.png').split('-')
         nos = [int(x) for x in nos]
         p = png.Reader(file=resource)
@@ -53,6 +54,18 @@ class _reader(object):
         chart = numpy.zeros(shape=(width, height), dtype=numpy.uint8)
         chart[:,:] = numpy.transpose(list(pixels))
         self._insert_chart(chart, *nos)
+
+    def _read_chart_fits(self, name, resource):
+        nos = name.strip('chart.fits').split('-')
+        nos = [int(x) for x in nos]
+        chart, _ = fits.read(resource)
+        self._insert_chart(chart, *nos)
+
+    def _read_chart(self, name, resource):
+        if name.endswith('.png'):
+            self._read_chart_png(name, resource)
+        elif name.endswith('.fits'):
+            self._read_chart_fits(name, resource)
 
     def _read_meta(self, _, resource):
         defaults = {'SPEED': 2000.0 / 60.0,
@@ -103,7 +116,7 @@ class _reader(object):
 def read(filename):
     return _reader().read(filename)
 
-def _write_charts(z, world, view):
+def _write_charts_png(z, world, view):
     w = png.Writer(size=world.charts[0].shape,
                    bitdepth=8,
                    palette=palette.to_rgb(view.palette))
@@ -114,6 +127,18 @@ def _write_charts(z, world, view):
             w.write(s, numpy.transpose(chart))
             z.writestr('chart%d-%d.png' % (atlasno, chartno), 
                      s.getvalue())
+
+def _write_charts_fits(z, world, view):
+    for atlasno, atlas in enumerate((world.charts, 
+                                     world._scratch_charts)):
+        for chartno, chart in enumerate(atlas):
+            s = StringIO()
+            fits.write(s, chart)
+            z.writestr('chart%d-%d.fits' % (atlasno, chartno), 
+                       s.getvalue())
+
+def _write_charts(z, world, view):
+    _write_charts_fits(z, world, view)
 
 def _write_meta(z, world, view):
     meta = {'SPEED': [2000.0 / view.speed],

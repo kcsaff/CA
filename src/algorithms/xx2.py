@@ -1,3 +1,19 @@
+# Copyright (C) 2010 by Kevin Saff
+
+# This file is part of the CA scanner.
+
+# The CA scanner is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# The CA scanner is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 This algorithm handles 256 states, packed at 1 cell per byte.
@@ -75,10 +91,10 @@ def evolve():
 
 generate.auto_generate(__name__)
 
-
 import numpy
-from _util import bit_count
+from _util import bit_count, register
     
+@register('compile_rule', type='life', quality=1.0)
 def _life(X):
     
     lookup0 = []
@@ -93,6 +109,7 @@ def _life(X):
             numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80),
             (0,1))
     
+@register('compile_rule', type='brain', quality=0.9)
 def _brain(X):
     
     lookup = numpy.ndarray(shape=0x10000, dtype=numpy.uint8)
@@ -116,9 +133,3 @@ def _brain(X):
     return (evolve, 
             lookup, 
             range(2) + range(2, (X.decay + 1) * 2, 2)  )
-    
-def adapt(X):
-    _adapt = {'life': _life,
-              'brain': _brain,
-              }
-    return _adapt[X.type](X)

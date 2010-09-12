@@ -93,9 +93,9 @@ generate.auto_generate(__name__)
 
 
 import numpy
-from _util import bit_count
+from _util import bit_count, register
 
-    
+@register('compile_rule', type='life', quality=0.9)
 def _life(X):
     birth, survival = X.birth, X.survival
     
@@ -111,6 +111,7 @@ def _life(X):
             numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80),
             (0,1))
     
+@register('compile_rule', type='brain', quality=1.0)
 def _brain(X):
     birth, survival, decay = X.birth, X.survival, X.decay
     
@@ -132,11 +133,12 @@ def _brain(X):
         else: #dying
             lookup[i] = ((i >> 9) + 1) % mdecay
             
-    return evolve, lookup, decay + 2
+    return evolve, lookup, range(decay + 2)
 
 #[ 0][ 1][ 2]
 #[ 3][*4][ 5]
 #[ 6][ 7][ 8]
+@register('compile_rule', type='banks', quality=1.0)
 def _banks(X,
            out_to_in = None): 
 
@@ -183,12 +185,4 @@ def _banks(X,
             lookup[i] = ((i >> 9) + 1) % mdecay
             
     return evolve, lookup, range(decay + 2)
-    
-    
-def adapt(X):
-    _adapt = {'life': _life,
-              'brain': _brain,
-              'banks': _banks,
-              }
-    return _adapt[X.type](X)
     

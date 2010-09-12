@@ -226,7 +226,7 @@ def auto_generate(source_name):
         if isinstance(value, __to_generate):
             function_list.append(value.unwrap())
             
-    path = os.path.dirname(source.__file__)
+    path = os.path.abspath(os.path.dirname(source.__file__))
 
     build_path = os.path.join(path, 'build')
     temp_path = os.path.join(build_path, 'build') #build process makes this dir

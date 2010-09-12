@@ -16,6 +16,7 @@
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy
+import registry
 from topology import torus
 from cascading_object import cascading_object
 import rules.water, rules.life
@@ -66,21 +67,19 @@ class World(cascading_object):
         return self.charts[0][mapped_point]    
             
 def default():
-    from algorithms import xx6
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]
-    result.algorithm, result.table, _ = xx6.adapt(rules.life.brain())
+    result.algorithm, result.table, _ = registry.get.compile_rule(rules.life.brain())
     result.toys = set()
     result.generation = 0
     return result          
   
 def water():
-    from algorithms import dd1
     result = World(source='water')
     result.topology = torus
     result.charts = [_water_chart()]
-    result.algorithm, result.table, _ = dd1.adapt(rules.water.water())
+    result.algorithm, result.table, _ = registry.get.compile_rule(rules.water.water())
     result.toys = set()
     result.generation = 0
     return result

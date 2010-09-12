@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, os.path, sys, imp
+import os, os.path, sys, imp, sys
 
 import logging
 
@@ -23,6 +23,17 @@ REG_DIR = 'reg'
 REG_EXT = '_r.txt'
 
 logger = logging.getLogger('registry')
+
+class _type_registry(object):
+    def __init__(self):
+        self.functions = {}
+        self.quality = {}
+    def __call__(self, obj):
+        return self.functions[obj.type](obj)
+    def insert(self, type, quality, function):
+        if type not in self.functions or quality > self.quality[type]:
+            self.functions[type] = function
+            self.quality[type] = quality
 
 _registry = {}
 
@@ -42,13 +53,22 @@ def _load_registry(regpath):
     path = os.path.dirname(os.path.dirname(regpath))
     name = os.path.basename(regpath)[-len(REG_EXT):]
     
-
-def _register_file(filename):
-    print filename
+def _get_full_module_name(filename):
     name = os.path.basename(filename).split('.')[0]
     path = os.path.dirname(filename)
+    while path and path != sys.path[0]:
+        name = '.'.join((os.path.basename(path), name))
+        path = os.path.dirname(path)
+    return name
+
+def _register_file(filename):
+    name = os.path.basename(filename).split('.')[0]
+    path = os.path.dirname(filename)
+    fullname = _get_full_module_name(filename)
+    parentname = fullname.rsplit('.', 1)[0]
+    __import__(parentname)
     args = imp.find_module(name, [path])
-    module = imp.load_module(name, *args)
+    module = imp.load_module(fullname, *args)
 #    reg_name = os.path.join(os.path.dirname(filename),
 #                            REG_DIR,
 #                            path + REG_EXT)
@@ -59,7 +79,6 @@ def _register_file(filename):
 #        _create_registry(filename, reg_name)
 
 def _register_dir(path):
-    print path
     register_path = os.path.join(path, REG_DIR)
     if not os.path.exists(register_path):
         os.mkdir(register_path)
@@ -74,8 +93,9 @@ def _register_dir(path):
             continue
         try:
             _, filename, _ = imp.find_module(name, [path])
-        except None:
-            logger.warn('Unable to register purported module "%s"', name)
+        except ImportError:
+            logger.warn('Unable to register purported module "%s" under path "%s"', 
+                        name, path)
             filename = None
         if filename:
             _register_file(filename)
@@ -87,7 +107,20 @@ def auto_register(path):
         path = os.path.dirname(path)
     _register_dir(path)
 
-def register(name, obj, quality = 1.0, filename=None):
-    _registry[name] = obj
+def register(name, quality=1.0, type=None, *args, **kwargs):
+    import inspect
+    module = inspect.getmodule(inspect.stack()[1][0])
 
-    
+    def decorator(fun):
+        if name not in _registry:
+            _registry[name] = _type_registry()
+        _registry[name].insert(type, quality, fun)
+        return fun
+    return decorator
+
+class _get(object):
+    def __getattr__(self, attr):
+        return _registry[attr]
+
+get = _get()
+

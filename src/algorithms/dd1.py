@@ -134,6 +134,9 @@ generate.auto_generate(__name__)
 
 import numpy
 
+from _util import register
+
+@register('compile_rule', type='water', quality=1.0)
 def _water(X):
     lookup = list(X.moore)
     lookup.append(X.history)
@@ -141,9 +144,3 @@ def _water(X):
     lookup.append((X.max + X.min) * X.damping / 2.0 + X.heat)
     lookup.extend((X.min, X.max, X.under, X.over))
     return evolve, numpy.asarray(lookup, dtype = numpy.float), None
-
-def adapt(X):
-    _adapt = {'water': _water,
-              }
-    return _adapt[X.type](X)
-    

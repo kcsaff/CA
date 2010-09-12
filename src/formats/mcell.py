@@ -98,45 +98,31 @@ def _parse_mirek_rule(rulestring):
         
     return parts
 
-def _Life_xx2(game, rule, ccolors, coloring):
-    from algorithms import xx2 
+def _Life(game, rule, ccolors, coloring):
     survival, birth = _parse_life_rule(rule, 's/s')
     print birth, survival
-    return xx2.adapt(rules.life.life(set(birth), set(survival)))
+    return rules.life.life(set(birth), set(survival))
 
-def _Generations_xx2(game, rule, ccolors, coloring):
-    from algorithms import xx2
+def _Generations(game, rule, ccolors, coloring):
     survival, birth, count = _parse_life_rule(rule, 's/s/n')
     print birth, survival, count
-    return xx2.adapt(rules.life.brain(set(birth), set(survival), count - 2))
+    return rules.life.brain(set(birth), set(survival), count - 2)
 
-def _Generations_xx6(game, rule, ccolors, coloring):
-    from algorithms import xx6
-    survival, birth, count = _parse_life_rule(rule, 's/s/n')
-    print birth, survival, count
-    return xx6.adapt(rules.life.brain(set(birth), set(survival), count - 2))
-
-def _General_binary_xx6(game, rule, ccolors, coloring):
-    from algorithms import xx6 
-    evolve = xx6.evolve
-    
+def _General_binary(game, rule, ccolors, coloring):
     parts = _parse_mirek_rule(rule)
     birth = [x for x in _rle_mirek_iterator(parts['B'])]
     survival = [x for x in _rle_mirek_iterator(parts['S'])]
     count = parts['C']
     print parts
     
-    if parts['N'] in ['N', 'M']:
-        table = xx6.banks(birth, survival, count - 2)
-    else:
+    if parts['N'] not in ['N', 'M']:
         raise ValueError, 'Neighborhood "%s" not implemented for general binary.' % parts['N']
-    states = range(count)     
-    return evolve, table, states
+    return rules.life.banks(birth, survival, count-2)
     
 
-__rules = {'Life': _Life_xx2,
-           'Generations': _Generations_xx6,
-           'General binary': _General_binary_xx6,
+__rules = {'Life': _Life,
+           'Generations': _Generations,
+           'General binary': _General_binary,
            }
 
 def _create_rule(game, rule, ccolors, coloring):
@@ -212,11 +198,13 @@ def _interpret_raw(data):
     if 'MCell' not in data:
         raise ValueError, 'Not recognized as an MCell file.'
 
-    algorithm, table, states = _create_rule(data['GAME'], 
-                                            data['RULE'], 
-                                            data['CCOLORS'],
-                                            data['COLORING'],
-                                            )
+    rule = _create_rule(data['GAME'], 
+                        data['RULE'], 
+                        data['CCOLORS'],
+                        data['COLORING'],
+                        )
+
+    algorithm, table, states = registry.get.compile_rule(rule)
     
     chart = _create_field(data['BOARD'],
                           data['L'])

@@ -16,4 +16,4 @@
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
 import registry
-#registry.register(__name__)
+registry.auto_register(__file__)

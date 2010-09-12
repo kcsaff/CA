@@ -18,6 +18,7 @@
 import numpy
 from topology import torus
 from cascading_object import cascading_object
+import rules.water, rules.life
 
 def _default_chart():
     chart = numpy.zeros(shape=(640, 480), dtype=numpy.uint8)
@@ -70,7 +71,7 @@ def default():
     result.topology = torus
     result.charts = [_default_chart()]
     result.algorithm = xx2.evolve
-    result.table = xx2.life()
+    result.table = xx2.adapt(rules.life.life())
     result.toys = set()
     result.generation = 0
     return result          
@@ -81,7 +82,7 @@ def water():
     result.topology = torus
     result.charts = [_water_chart()]
     result.algorithm = dd1.evolve
-    result.table = dd1.boiling_water()
+    result.table = dd1.adapt(rules.water.water())
     result.toys = set()
     result.generation = 0
     return result

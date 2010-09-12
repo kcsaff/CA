@@ -77,7 +77,7 @@ generate.auto_generate(__name__)
 
 
 import numpy
-from ..util import bit_count
+from _util import bit_count
     
 def _life(X):
     

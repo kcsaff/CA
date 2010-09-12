@@ -66,11 +66,11 @@ class World(cascading_object):
         return self.charts[0][mapped_point]    
             
 def default():
-    from algorithms import xx2
+    from algorithms import xx6
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]
-    result.algorithm, result.table, _ = xx2.adapt(rules.life.life())
+    result.algorithm, result.table, _ = xx6.adapt(rules.life.brain())
     result.toys = set()
     result.generation = 0
     return result          

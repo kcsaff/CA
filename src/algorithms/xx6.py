@@ -93,10 +93,11 @@ generate.auto_generate(__name__)
 
 
 import numpy
-from ..util import bit_count
+from _util import bit_count
 
     
-def life(birth = [3], survival = [2,3]):
+def _life(X):
+    birth, survival = X.birth, X.survival
     
     lookup0 = []
     
@@ -106,9 +107,12 @@ def life(birth = [3], survival = [2,3]):
         else:
             lookup0.append(0)
             
-    return numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80)
+    return (evolve,
+            numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80),
+            (0,1))
     
-def brain(birth = [2], survival = [], decay = 1):
+def _brain(X):
+    birth, survival, decay = X.birth, X.survival, X.decay
     
     lookup = numpy.ndarray(shape=0x20000, dtype=numpy.uint8)
     
@@ -128,15 +132,15 @@ def brain(birth = [2], survival = [], decay = 1):
         else: #dying
             lookup[i] = ((i >> 9) + 1) % mdecay
             
-    return lookup
+    return evolve, lookup, decay + 2
 
 #[ 0][ 1][ 2]
 #[ 3][*4][ 5]
 #[ 6][ 7][ 8]
-def banks(birth = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1],
-          survival = [1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1],
-          decay = 0,
-          out_to_in = None): 
+def _banks(X,
+           out_to_in = None): 
+
+    birth, survival, decay = X.birth, X.survival, X.decay
     
     if out_to_in is None:
         #in order NESW, like mcell
@@ -178,6 +182,13 @@ def banks(birth = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1],
         else: #dying
             lookup[i] = ((i >> 9) + 1) % mdecay
             
-    return lookup
+    return evolve, lookup, range(decay + 2)
     
+    
+def adapt(X):
+    _adapt = {'life': _life,
+              'brain': _brain,
+              'banks': _banks,
+              }
+    return _adapt[X.type](X)
     

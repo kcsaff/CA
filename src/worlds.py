@@ -70,8 +70,7 @@ def default():
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]
-    result.algorithm = xx2.evolve
-    result.table = xx2.adapt(rules.life.life())
+    result.algorithm, result.table, _ = xx2.adapt(rules.life.life())
     result.toys = set()
     result.generation = 0
     return result          
@@ -81,8 +80,7 @@ def water():
     result = World(source='water')
     result.topology = torus
     result.charts = [_water_chart()]
-    result.algorithm = dd1.evolve
-    result.table = dd1.adapt(rules.water.water())
+    result.algorithm, result.table, _ = dd1.adapt(rules.water.water())
     result.toys = set()
     result.generation = 0
     return result

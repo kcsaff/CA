@@ -140,7 +140,7 @@ def _water(X):
     lookup.append((1.0 - X.damping) / sum(lookup))
     lookup.append((X.max + X.min) * X.damping / 2.0 + X.heat)
     lookup.extend((X.min, X.max, X.under, X.over))
-    return numpy.asarray(lookup, dtype = numpy.float)
+    return evolve, numpy.asarray(lookup, dtype = numpy.float), None
 
 def adapt(X):
     _adapt = {'water': _water,

@@ -25,9 +25,10 @@ import common
 from rules._rule import rule
 from topologies._topology import topology
             
-#    result.topology = torus
-#    result.toys = set()
-#    (also need info about how chart data is stored.)
+#    result.toys = set() #doesn't matter too much yet.
+#    TODO: need info about how chart data is stored.
+#    TODO: save palette when using FITS for charts.
+#    TODO: put metadata in PNG and FITS files when possible.
 
 class _reader(object):
 
@@ -56,6 +57,7 @@ class _reader(object):
         nos = [int(x) for x in nos]
         chart, _ = fits.read(resource)
         self._insert_chart(chart.transpose(), *nos)
+        self.view.palette = palette.grays
 
     def _read_chart(self, name, resource):
         if name.endswith('.png'):
@@ -138,7 +140,13 @@ def _write_charts_fits(z, world, view):
                        s.getvalue())
 
 def _write_charts(z, world, view):
-    _write_charts_fits(z, world, view)
+    if world.charts[0].dtype == numpy.dtype(numpy.uint8):
+        _write_charts_png(z, world, view)
+    elif world.charts[0].dtype == numpy.dtype(numpy.float64):
+        _write_charts_fits(z, world, view)
+    else:
+        _write_charts_png(z, world, view)
+
 
 def _write_meta(z, world, view):
     meta = {'SPEED': [2000.0 / view.speed],

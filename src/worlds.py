@@ -17,7 +17,7 @@
 
 import numpy
 import registry
-from topology import torus
+import topologies.torus
 from cascading_object import cascading_object
 import rules.water, rules.life
 
@@ -33,16 +33,26 @@ def _water_chart():
     return chart
     
 class World(cascading_object):
-    _scratch_charts = None
     generation = 0
-    compiled_rule = None
+    _scratch_charts = None
+    _compiled_rule = None
+    _compiled_topology = None
+
+    def __setattr__(self, attr, value):
+        cascading_object.__setattr__(self, attr, value)
+        if attr == 'rule':
+            self.compile_rule()
+        elif attr == 'topology':
+            self.compile_topology()
     
     def _stitch(self):
-        self.topology.stitch(self.charts)
+        self.stitch.stitch(self.charts)
         
     def evolve(self, generations = 1):
-        if self.compiled_rule != self.rule:
+        if self._compiled_rule != self.rule:
             self.compile_rule()
+        if self._compiled_topology != self.topology:
+            self.compile_topology()
 
         if self.generation == 0:
             self._stitch()
@@ -62,20 +72,26 @@ class World(cascading_object):
             
     def set(self, point, state):
         #print 'setting', point, state
-        mapped_point = self.topology.map_point(point, self.charts[0])
+        mapped_point = self.stitch.map_point(point, self.charts[0])
         for chart in self.charts: #This can't be _quite_ right.
             chart[mapped_point] = state   
             
     def get(self, point):
-        mapped_point = self.topology.map_point(point, self.charts[0])
+        mapped_point = self.stitch.map_point(point, self.charts[0])
         return self.charts[0][mapped_point]    
 
     def compile_rule(self):
         self.algorithm, self.table, _ = registry.get.compile_rule(self.rule)
+        self._compiled_rule = self.rule
+
+    def compile_topology(self):
+        self.stitch = registry.get.compile_topology(self.topology)
+        print self.stitch
+        self._compiled_topology = self.topology
             
 def default():
     result = World(source='default')
-    result.topology = torus
+    result.topology = topologies.torus.torus()
     result.charts = [_default_chart()]
     result.rule = rules.life.brain()
     result.toys = set()
@@ -84,7 +100,7 @@ def default():
   
 def water():
     result = World(source='water')
-    result.topology = torus
+    result.topology = topologies.torus.torus()
     result.charts = [_water_chart()]
     result.rule = rules.water.water()
     result.toys = set()

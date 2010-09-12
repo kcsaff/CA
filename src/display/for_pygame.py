@@ -42,7 +42,8 @@ class scrollable_displayer(object):
         palette = view.palette
         chart = world.charts[0]
         center = view.center
-        fun = world.topology.map_slice
+        fun = world.stitch.map_slice
+        assert fun
         self.do_display(pixels, palette, chart, center, fun)
         
     @classmethod
@@ -98,7 +99,7 @@ class scrollable_zoomable_displayer(scrollable_displayer):
         chart = world.charts[0]
         center = view.center
         zoom = view.zoom
-        fun = world.topology.map_slice
+        fun = world.stitch.map_slice
         
         if zoom == 1:
             return scrollable_displayer.display(self, world, view)

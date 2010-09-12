@@ -20,6 +20,7 @@ import views
 import worlds
 import common
 import rules.life
+from topologies._topology import topology
 
 #Basic MCell file format is ascii extension of Life 1.05.
 
@@ -153,11 +154,10 @@ def _create_field(board, L):
     return result
 
 def _create_topology(wrap):
-    from topology import rectangle, torus
     if wrap:
-        return torus
+        return topology('torus')
     else:
-        return rectangle
+        return topology('rectangle')
     
 def _create_palette(palette):
     if palette:

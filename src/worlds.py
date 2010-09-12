@@ -79,7 +79,7 @@ def water():
     result = World(source='water')
     result.topology = torus
     result.charts = [_water_chart()]
-    result.algorithm, result.table, _ = registry.get.compile_rule(rules.water.water())
+    result.algorithm, result.table, _ = registry.get.compile_rule(rules.water.dunes())
     result.toys = set()
     result.generation = 0
     return result

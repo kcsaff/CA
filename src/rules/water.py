@@ -28,16 +28,14 @@ def boiling_water():
                  under = 0.0, over = 0.0)
     
 def dunes():
-    
-    lookup = [0.15, 0.30, 0.10,
-              0.40, 0.00, 0.20,
-              0.15, 0.30, 0.10,
-              -0.7,
-              1.0, 
-              0,
-              0.0, 255.9,
-              0.0, 255.9]
-    return numpy.asarray(lookup, dtype = numpy.float)
+    return water(moore=[0.15, 0.30, 0.10,
+                        0.40, 0.00, 0.20,
+                        0.15, 0.30, 0.10],
+                 history = -0.7,
+                 damping = 0.0,
+                 heat = 0,
+                 min = 0.0, max = 255.9,
+                 under = 0.0, over = 255.9)
     
 def aurora():
     

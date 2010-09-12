@@ -1,6 +1,24 @@
+# Copyright (C) 2010 by Kevin Saff
+
+# This file is part of the CA scanner.
+
+# The CA scanner is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# The CA scanner is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
+
 import logging, numpy
 import views
 import worlds
+import common
 
 #Basic MCell file format is ascii extension of Life 1.05.
 
@@ -49,16 +67,6 @@ def _rle_mirek_iterator(rle):
             for _ in range(max(1, runlength)):
                 yield value
             runlength = 0
-
-def _raw_read(input):
-    result = {}
-    for line in input:
-        if '#' in line:
-            normalized_line = line.split('#', 1) [1]
-            key, value = normalized_line.split(' ', 1)
-            result.setdefault(key, []).append(value.strip())
-    
-    return result
 
     
 def _parse_life_rule(rulestring, format):
@@ -201,31 +209,24 @@ _defaults = {'GAME': 'Life',
              'DIV': ''
              }
 
-def _get(data, key):
-    if key not in data:
-        return _defaults[key]
-    
-    if key in _line_join:
-        return _line_join[key].join(data[key])
-    else:
-        result = data[key][0]
-        if len(data[key]) > 1:
-            logger.warn("Only the first value of '%s' (%s) will be used.",
-                        key, result)
-        return result
-            
+_evals = {'SPEED': float,
+          'CCOLORS': int,
+          'COLORING': int,
+          'WRAP': int,
+          }
+
 def _interpret_raw(data):
     if 'MCell' not in data:
         raise ValueError, 'Not recognized as an MCell file.'
 
-    algorithm, table, states = _create_rule(_get(data, 'GAME'), 
-                                            _get(data, 'RULE'), 
-                                            _get(data, 'CCOLORS'),
-                                            _get(data, 'COLORING'),
+    algorithm, table, states = _create_rule(data['GAME'], 
+                                            data['RULE'], 
+                                            data['CCOLORS'],
+                                            data['COLORING'],
                                             )
     
-    chart = _create_field(_get(data, 'BOARD'),
-                          _get(data, 'L'))
+    chart = _create_field(data['BOARD'],
+                          data['L'])
     
     #Fix states.
     #The state numbers used to define the grid may be different
@@ -234,15 +235,15 @@ def _interpret_raw(data):
         for y in range(chart.shape[1]):
             chart[x,y] = states[chart[x,y]]
     
-    topology = _create_topology(_get(data, 'WRAP'))
+    topology = _create_topology(data['WRAP'])
     
-    palette = _create_palette(_get(data, 'PALETTE'))
+    palette = _create_palette(data['PALETTE'])
     
-    delay = float(_get(data, 'SPEED')) / 1000.0 #seconds to delay between frames
+    delay = data['SPEED'] / 1000.0 #seconds to delay between frames
     
-    description = _get(data, 'D')
+    description = data['D']
     
-    objects = _create_objects(_get(data, 'DIV'))
+    objects = _create_objects(data['DIV'])
     
     world = worlds.World()
     view = views.View()
@@ -270,5 +271,8 @@ def _interpret_raw(data):
 def read(file):
     if isinstance(file, (str, unicode)): #just a filename
         file = open(file, 'r')
-    return _interpret_raw(_raw_read(file))
+    return _interpret_raw(common.read_hash(file,
+                                           joins=_line_join,
+                                           defaults=_defaults,
+                                           evals=_evals))
         

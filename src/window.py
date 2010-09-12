@@ -44,7 +44,8 @@ class Window(cascading_object):
         self.last_filename = filename    
         
     def file_open_dialog(self):
-        self.file_open('/home/kevin/temp.ca.zip')
+        self.file_open('/home/kevin/cas/mcell/Generations/Faders.mcl')
+        #self.file_open('/home/kevin/temp.ca.zip')
         #tk_dialogs.file_open_dialog(self.last_filename)
         
     def file_save_dialog(self):

@@ -108,13 +108,14 @@ def _read_fits(file):
     shape = [1] * naxis
     for n in range(naxis):
         shape[n] = headers['NAXIS%d' % (n+1)]
+    shape = list(reversed(shape))
     bitpix = headers['BITPIX']
     count = reduce(operator.mul, shape)
     open('temp.dat', 'wb').write(file.read(count * bitpix // 8))
     data = numpy.fromfile(open('temp.dat', 'rb'),
                           dtype=_rtypes[bitpix],
                           count=count)
-    data = data.reshape(shape, order='F')
+    data = data.reshape(shape)
     return data, headers
 
 def _write_all_headers(file, headers):
@@ -138,7 +139,7 @@ def _write_headers(file, data, headers={}):
     headerlist.append(('SIMPLE', True, None))
     headerlist.append(('BITPIX', _wtypes[data.dtype], None))
     headerlist.append(('NAXIS', len(data.shape), None))
-    for i, dim in enumerate(data.shape):
+    for i, dim in enumerate(reversed(data.shape)):
         headerlist.append(('NAXIS%d' % (i + 1), dim, None))
     for key, values in headers.items():
         for value in values.split('\n'):
@@ -147,7 +148,7 @@ def _write_headers(file, data, headers={}):
     _write_all_headers(file, headerlist)
 
 def _write_data(file, data):
-    data.transpose().tofile(open('temp.dat', 'wb')) #workaround
+    data.tofile(open('temp.dat', 'wb')) #workaround
     #data.tofile(file) #doesn't work for StringIO :(
     file.write(open('temp.dat', 'rb').read())
 

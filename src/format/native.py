@@ -59,7 +59,7 @@ class _reader(object):
         nos = name.strip('chart.fits').split('-')
         nos = [int(x) for x in nos]
         chart, _ = fits.read(resource)
-        self._insert_chart(chart, *nos)
+        self._insert_chart(chart.transpose(), *nos)
 
     def _read_chart(self, name, resource):
         if name.endswith('.png'):
@@ -133,7 +133,7 @@ def _write_charts_fits(z, world, view):
                                      world._scratch_charts)):
         for chartno, chart in enumerate(atlas):
             s = StringIO()
-            fits.write(s, chart)
+            fits.write(s, chart.transpose())
             z.writestr('chart%d-%d.fits' % (atlasno, chartno), 
                        s.getvalue())
 

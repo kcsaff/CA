@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path, sys, imp
+import os, os.path, sys, imp
 import shlex, subprocess
 
 def __doc_string_for_c(string):
@@ -171,12 +171,15 @@ def __build_inplace(path, outpath=None):
                               cwd=outpath).communicate()
     return result
 
-def __generate_from_c(path,
-                        module_name, 
-                        module_doc,
-                        function_list, #list of tuples: (name, doc, definition)
-                        ):
-    temp_path = os.path.join(path, 'build')
+def __generate_from_c(build_path,
+                      temp_path,
+                      module_name, 
+                      module_doc,
+                      function_list, #list of tuples: (name, doc, definition)
+                      ):
+    print build_path, temp_path
+    if not os.path.exists(build_path):
+        os.mkdir(build_path)
     if not os.path.exists(temp_path):
         os.mkdir(temp_path)
     __save_c(temp_path,
@@ -187,7 +190,7 @@ def __generate_from_c(path,
     __save_setup(temp_path,
                  module_name,
                  )
-    __build_inplace(temp_path, path)
+    __build_inplace(temp_path, build_path)
 
 class __to_generate(object):
     def __init__(self,
@@ -213,7 +216,7 @@ def c(fun):
 def auto_generate(source_name):
     #source is expected to be a module name, __name__
     source = sys.modules[source_name]
-    module_name = '_c'
+    module_name = '%s_c' % source_name.split('.')[-1]
     module_doc = source.__doc__
 
     function_list = []
@@ -224,9 +227,12 @@ def auto_generate(source_name):
             function_list.append(value.unwrap())
             
     path = os.path.dirname(source.__file__)
+
+    build_path = os.path.join(path, 'build')
+    temp_path = os.path.join(build_path, 'build') #build process makes this dir
     
     try:
-        _, found_module, _ = imp.find_module(module_name, [path])
+        _, found_module, _ = imp.find_module(module_name, [build_path])
         if os.path.getmtime(found_module) < os.path.getmtime(source.__file__):
             os.remove(found_module)
             found_module = None
@@ -234,13 +240,15 @@ def auto_generate(source_name):
         found_module = None
         
     if not found_module:
-        __generate_from_c(path,
+        __generate_from_c(build_path,
+                          temp_path,
                           module_name,
                           module_doc,
                           function_list,
                           )
 
-    module = __import__(module_name, source.__dict__)
+    args = imp.find_module(module_name, [build_path])
+    module = imp.load_module(module_name, *args)
     for fun in function_list:
         setattr(source, fun[0], getattr(module, fun[0]))
     #setattr(source, module_name, __import__(module_name, source.__dict__))

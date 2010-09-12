@@ -120,6 +120,8 @@ def _read_fits(file):
     data = numpy.fromfile(open('temp.dat', 'rb'),
                           dtype=_rtypes[bitpix],
                           count=count)
+    #And actually the whole temp file here is a workaround for numpy.fromfile
+    # not being able to use the filelike object here.
     data = data.reshape(shape)
     return data, headers
 

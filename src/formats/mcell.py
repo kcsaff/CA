@@ -102,7 +102,7 @@ def _Life_xx2(game, rule, ccolors, coloring):
     evolve = xx2.evolve
     survival, birth = _parse_life_rule(rule, 's/s')
     print birth, survival
-    table = xx2.life.life(set(birth), set(survival))
+    table = xx2.life(set(birth), set(survival))
     return evolve, table, range(2)
 
 def _Generations_xx2(game, rule, ccolors, coloring):
@@ -110,7 +110,7 @@ def _Generations_xx2(game, rule, ccolors, coloring):
     evolve = xx2.evolve
     survival, birth, count = _parse_life_rule(rule, 's/s/n')
     print birth, survival, count
-    table = xx2.life.brain(set(birth), set(survival), count - 2)
+    table = xx2.brain(set(birth), set(survival), count - 2)
     states = range(2) + range(2, (count - 1) * 2, 2)     
     return evolve, table, states
 
@@ -119,7 +119,7 @@ def _Generations_xx6(game, rule, ccolors, coloring):
     evolve = xx6.evolve
     survival, birth, count = _parse_life_rule(rule, 's/s/n')
     print birth, survival, count
-    table = xx6.life.brain(set(birth), set(survival), count - 2)
+    table = xx6.brain(set(birth), set(survival), count - 2)
     states = range(count)     
     return evolve, table, states
 
@@ -134,7 +134,7 @@ def _General_binary_xx6(game, rule, ccolors, coloring):
     print parts
     
     if parts['N'] in ['N', 'M']:
-        table = xx6.life.banks(birth, survival, count - 2)
+        table = xx6.banks(birth, survival, count - 2)
     else:
         raise ValueError, 'Neighborhood "%s" not implemented for general binary.' % parts['N']
     states = range(count)     

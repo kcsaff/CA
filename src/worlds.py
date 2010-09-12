@@ -70,7 +70,7 @@ def default():
     result.topology = torus
     result.charts = [_default_chart()]
     result.algorithm = xx2.evolve
-    result.table = xx2.life.life()
+    result.table = xx2.life()
     result.toys = set()
     result.generation = 0
     return result          
@@ -81,7 +81,7 @@ def water():
     result.topology = torus
     result.charts = [_water_chart()]
     result.algorithm = dd1.evolve
-    result.table = dd1.life.boiling_water()
+    result.table = dd1.boiling_water()
     result.toys = set()
     result.generation = 0
     return result

@@ -23,6 +23,7 @@ import formats
 import Queue
 import tk_dialogs
 import sys
+import rules
   
 class Window(cascading_object):
     

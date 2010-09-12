@@ -22,23 +22,15 @@ from StringIO import StringIO
 import numpy
 import worlds, views
             
-#def default():
-#    from algorithms.xx2 import algorithm, life
-#    result = World(source='default')
 #    result.topology = torus
-#    result.charts = [_default_chart()]
 #    result.algorithm = algorithm.evolve
 #    result.table = life.life()
 #    result.toys = set()
 #    result.generation = 0
-#    return result          
-#def default():
-#    result = View(source='default')
+
 #    result.center = (0,0)
 #    result.zoom = 1
-#    result.palette = palette.default
 #    result.speed = 60
-#    return result
 
 class _reader(object):
 

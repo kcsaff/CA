@@ -28,6 +28,10 @@ import common
 #    result.table = life.life()
 #    result.toys = set()
 
+#Currently using PNG for chart data.  May want to implement
+#FITS (pyfits is available) for floating point data at some
+#point.
+
 class _reader(object):
 
     def __init__(self):

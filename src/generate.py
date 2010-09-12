@@ -1,3 +1,19 @@
+# Copyright (C) 2010 by Kevin Saff
+
+# This file is part of the CA scanner.
+
+# The CA scanner is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# The CA scanner is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
 import os.path, sys, imp
 import shlex, subprocess
@@ -172,12 +188,41 @@ def __generate_from_c(path,
                  module_name,
                  )
     __build_inplace(temp_path, path)
+
+class __to_generate(object):
+    def __init__(self,
+                 name, 
+                 docstring,
+                 definition, 
+                 signature = None):
+        self.name = name
+        self.docstring = docstring
+        self.definition = definition
+        self.signature = signature
+
+    def unwrap(self):
+        return (self.name,
+                self.docstring,
+                self.definition)
+
+def c(fun):
+    return __to_generate(fun.__name__,
+                         fun.__doc__,
+                         fun())
     
-def auto_generate(source_name, module_name = 'auto'):
+def auto_generate(source_name):
     #source is expected to be a module name, __name__
     source = sys.modules[source_name]
+    module_name = '_c'
     module_doc = source.__doc__
-    function_list = source.functions
+
+    function_list = []
+    if 'functions' in source.__dict__:
+        function_list = source.functions
+    for value in source.__dict__.values():
+        if isinstance(value, __to_generate):
+            function_list.append(value.unwrap())
+            
     path = os.path.dirname(source.__file__)
     
     try:
@@ -195,5 +240,8 @@ def auto_generate(source_name, module_name = 'auto'):
                           function_list,
                           )
 
-    setattr(source, module_name, __import__(module_name, source.__dict__))
+    module = __import__(module_name, source.__dict__)
+    for fun in function_list:
+        setattr(source, fun[0], getattr(module, fun[0]))
+    #setattr(source, module_name, __import__(module_name, source.__dict__))
     

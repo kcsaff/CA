@@ -65,23 +65,23 @@ class World(cascading_object):
         return self.charts[0][mapped_point]    
             
 def default():
-    from algorithms.xx2 import algorithm, life
+    from algorithms import xx2
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]
-    result.algorithm = algorithm.evolve
-    result.table = life.life()
+    result.algorithm = xx2.evolve
+    result.table = xx2.life.life()
     result.toys = set()
     result.generation = 0
     return result          
   
 def water():
-    from algorithms.dd1 import algorithm, life
+    from algorithms import dd1
     result = World(source='water')
     result.topology = torus
     result.charts = [_water_chart()]
-    result.algorithm = algorithm.evolve
-    result.table = life.boiling_water()
+    result.algorithm = dd1.evolve
+    result.table = dd1.life.boiling_water()
     result.toys = set()
     result.generation = 0
     return result

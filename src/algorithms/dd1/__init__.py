@@ -39,9 +39,10 @@ if it goes above the max.
 
 import generate
 
-functions = [
-('evolve', 'Evolve it.',
-"""
+@generate.c
+def evolve():
+    """Evolve it."""
+    return """
     PyArrayObject *input;
     PyArrayObject *output;
     PyArrayObject *lookup;
@@ -125,11 +126,12 @@ functions = [
         }
     }
     return PyFloat_FromDouble(1.0);
-"""),
-]
+    """
              
 
 
 generate.auto_generate(__name__, 'algorithm')
+
+import life
 
     

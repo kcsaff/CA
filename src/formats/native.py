@@ -23,6 +23,7 @@ import numpy
 import worlds, views
 import common
 from rules._rule import rule
+from topologies._topology import topology
             
 #    result.topology = torus
 #    result.toys = set()
@@ -84,6 +85,8 @@ class _reader(object):
         self.world.generation = data['GENERATION']
         if 'RULE' in data:
             self.world.rule = eval('rule(%s)' % data['RULE'])
+        if 'WRAP' in data:
+            self.world.topology = eval('topology(%s)' % data['WRAP'])
 
     def _read(self, name, resource):
         if name.startswith('chart'):
@@ -143,6 +146,7 @@ def _write_meta(z, world, view):
             'CENTER': ['%s %s' % tuple(view.center)],
             'GENERATION': [world.generation],
             'RULE': [world.rule.format_args()],
+            'WRAP': [world.topology.format_args()],
             }
     s = StringIO()
     common.write_hash_raw(s, meta)

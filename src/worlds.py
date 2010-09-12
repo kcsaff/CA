@@ -71,10 +71,10 @@ class World(cascading_object):
         self._scratch_charts = [chart.copy() for chart in self.charts]
             
     def set(self, point, state):
-        #print 'setting', point, state
+        print 'setting', point, state, self.charts[0].shape
         mapped_point = self.stitch.map_point(point, self.charts[0])
         for chart in self.charts: #This can't be _quite_ right.
-            chart[mapped_point] = state   
+            chart[tuple(mapped_point)] = state   
             
     def get(self, point):
         mapped_point = self.stitch.map_point(point, self.charts[0])
@@ -86,7 +86,6 @@ class World(cascading_object):
 
     def compile_topology(self):
         self.stitch = registry.get.compile_topology(self.topology)
-        print self.stitch
         self._compiled_topology = self.topology
             
 def default():

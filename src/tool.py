@@ -149,6 +149,13 @@ def file_save_dialog(window, event):
     
 def toggle_pause(window, event):
     window.toggle_pause()
+
+def toggle_wrap(window, event):
+    from topologies._topology import topology
+    if window.world.topology.type == 'torus':
+        window.world.topology = topology('rectangle')
+    elif window.world.topology.type == 'rectangle':
+        window.world.topology = topology('torus')
     
 def step(window, event):
     window.world.evolve()
@@ -161,6 +168,7 @@ drag_map = {'M1~': drag_scroll(),
             'o': file_open_dialog,
             's': file_save_dialog,
             'p': toggle_pause,
+            'w': toggle_wrap,
             ' ': step,
             'file_open': file_open,
             'file_save': file_save,

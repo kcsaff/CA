@@ -22,16 +22,11 @@ from StringIO import StringIO
 import numpy
 import worlds, views
 import common
+from rules._rule import rule
             
 #    result.topology = torus
-#    result.algorithm = algorithm.evolve
-#    result.table = life.life()
 #    result.toys = set()
-
-#Currently using PNG for chart data.  May want to implement
-#FITS (pyfits is available) for floating point data at some
-#point.
-
+#    (also need info about how chart data is stored.)
 
 class _reader(object):
 
@@ -87,6 +82,8 @@ class _reader(object):
         self.view.zoom = data['ZOOM']
         self.view.center = [int(x) for x in data['CENTER']]
         self.world.generation = data['GENERATION']
+        if 'RULE' in data:
+            self.world.rule = eval('rule(%s)' % data['RULE'])
 
     def _read(self, name, resource):
         if name.startswith('chart'):
@@ -145,6 +142,7 @@ def _write_meta(z, world, view):
             'ZOOM': [view.zoom],
             'CENTER': ['%s %s' % tuple(view.center)],
             'GENERATION': [world.generation],
+            'RULE': [world.rule.format_args()],
             }
     s = StringIO()
     common.write_hash_raw(s, meta)

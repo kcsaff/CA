@@ -1,5 +1,5 @@
 
-from simple import typed_object as rule
+from _rule import rule
 import registry
 
 def life(birth = [3], survival = [2,3]):

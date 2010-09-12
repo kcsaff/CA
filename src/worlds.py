@@ -35,11 +35,15 @@ def _water_chart():
 class World(cascading_object):
     _scratch_charts = None
     generation = 0
+    compiled_rule = None
     
     def _stitch(self):
         self.topology.stitch(self.charts)
         
     def evolve(self, generations = 1):
+        if self.compiled_rule != self.rule:
+            self.compile_rule()
+
         if self.generation == 0:
             self._stitch()
             self._create_scratch_charts()
@@ -65,12 +69,15 @@ class World(cascading_object):
     def get(self, point):
         mapped_point = self.topology.map_point(point, self.charts[0])
         return self.charts[0][mapped_point]    
+
+    def compile_rule(self):
+        self.algorithm, self.table, _ = registry.get.compile_rule(self.rule)
             
 def default():
     result = World(source='default')
     result.topology = torus
     result.charts = [_default_chart()]
-    result.algorithm, result.table, _ = registry.get.compile_rule(rules.life.brain())
+    result.rule = rules.life.brain()
     result.toys = set()
     result.generation = 0
     return result          
@@ -79,7 +86,7 @@ def water():
     result = World(source='water')
     result.topology = torus
     result.charts = [_water_chart()]
-    result.algorithm, result.table, _ = registry.get.compile_rule(rules.water.dunes())
+    result.rule = rules.water.water()
     result.toys = set()
     result.generation = 0
     return result

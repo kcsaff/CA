@@ -33,3 +33,8 @@ class typed_object(object):
         return '%s(%s)' % (self.__class__.__name__,
                            self.format_args())
         
+    def __eq__(self, other):
+        return self.type == other.type and self.kwargs == other.kwargs
+
+    def copy(self):
+        return self.__class__(self.type, **self.kwargs)

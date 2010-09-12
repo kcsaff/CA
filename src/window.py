@@ -19,7 +19,7 @@ from cascading_object import cascading_object
 from run import run
 import worlds, views, display
 import tool
-import format
+import formats
 import Queue
 import tk_dialogs
 import sys
@@ -34,13 +34,13 @@ class Window(cascading_object):
         return self.view.speed
     
     def file_open(self, filename):
-        new_world, new_view = format.read(filename)
+        new_world, new_view = formats.read(filename)
         self.world.update(new_world)
         self.view.update(new_view)    
         self.last_filename = filename    
     
     def file_save(self, filename):
-        format.write(filename, self.world, self.view)
+        formats.write(filename, self.world, self.view)
         self.last_filename = filename    
         
     def file_open_dialog(self):

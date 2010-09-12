@@ -21,16 +21,12 @@ from views import palette
 from StringIO import StringIO
 import numpy
 import worlds, views
+import common
             
 #    result.topology = torus
 #    result.algorithm = algorithm.evolve
 #    result.table = life.life()
 #    result.toys = set()
-#    result.generation = 0
-
-#    result.center = (0,0)
-#    result.zoom = 1
-#    result.speed = 60
 
 class _reader(object):
 
@@ -50,14 +46,36 @@ class _reader(object):
         p = png.Reader(file=resource)
         width, height, pixels, meta = p.read()
         self.view.palette = views.palette.from_rgb(p.palette())
-        print meta
         chart = numpy.zeros(shape=(width, height), dtype=numpy.uint8)
         chart[:,:] = numpy.transpose(list(pixels))
         self._insert_chart(chart, *nos)
 
+    def _read_meta(self, _, resource):
+        defaults = {'SPEED': 2000.0 / 60.0,
+                    'ZOOM': 1,
+                    'CENTER': '0 0',
+                    'GENERATION': 0,
+                    }
+        evals = {'SPEED': float, #~milliseconds between frames
+                 'ZOOM': eval,
+                 'CENTER': str.split, #get later
+                 'GENERATION': int,
+                 }
+
+        data=common.read_hash(resource,
+                              evals=evals,
+                              defaults=defaults)
+
+        self.view.speed = 2000.0 / data['SPEED']
+        self.view.zoom = data['ZOOM']
+        self.view.center = [int(x) for x in data['CENTER']]
+        self.world.generation = data['GENERATION']
+
     def _read(self, name, resource):
         if name.startswith('chart'):
             self._read_chart(name, resource)
+        elif name == 'meta.txt':
+            self._read_meta(name, resource)
         else:
             raise ValueError, 'Unknown native resource: %s.' % name
 
@@ -81,19 +99,33 @@ class _reader(object):
 def read(filename):
     return _reader().read(filename)
 
-def write(filename, world, view):
-    f = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
-    #First try to save PNG data (charts with palettes)
+def _write_charts(z, world, view):
+    w = png.Writer(size=world.charts[0].shape,
+                   bitdepth=8,
+                   palette=palette.to_rgb(view.palette))
     for atlasno, atlas in enumerate((world.charts, 
                                      world._scratch_charts)):
         for chartno, chart in enumerate(atlas):
             s = StringIO()
-            w = png.Writer(size=chart.shape,
-                           bitdepth=8,
-                           palette=palette.to_rgb(view.palette))
             w.write(s, numpy.transpose(chart))
-            f.writestr('chart%d-%d.png' % (atlasno, chartno), 
-                       s.getvalue())
+            z.writestr('chart%d-%d.png' % (atlasno, chartno), 
+                     s.getvalue())
+
+def _write_meta(z, world, view):
+    meta = {'SPEED': [2000.0 / view.speed],
+            'ZOOM': [view.zoom],
+            'CENTER': ['%s %s' % tuple(view.center)],
+            'GENERATION': [world.generation],
+            }
+    s = StringIO()
+    common.write_hash_raw(s, meta)
+    z.writestr('meta.txt', s.getvalue())
+
+def write(filename, world, view):
+    f = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
+    #First try to save PNG data (charts with palettes)
+    _write_charts(f, world, view)
+    _write_meta(f, world, view)
     f.close()
                        
                        

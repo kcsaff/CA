@@ -46,7 +46,7 @@ def read_hash(input,
             result[key] = result[key][0]
 
         if key in evals:
-            result[key] = eval(result[key])
+            result[key] = evals[key](result[key])
 
     for key, value in defaults.items():
         if key not in result:
@@ -58,3 +58,4 @@ def write_hash_raw(output, dict):
     for key, value in dict.items():
         for line in value:
             output.write('#%s %s' % (key, line))
+            output.write('\n')

@@ -96,7 +96,7 @@ def evolve():
     rmax = look[13];
     rn = look[14];
     rp = look[15];
-    /*return PyFloat_FromDouble(1.0);/**/
+
     for (x0 = xstride; x0 < xM; x0 += xstride)
     {
         xa = x0 - xstride;
@@ -130,7 +130,7 @@ def evolve():
              
 
 
-generate.auto_generate(__name__, 'algorithm')
+generate.auto_generate(__name__)
 
 import life
 

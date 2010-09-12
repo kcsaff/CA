@@ -80,7 +80,7 @@ def create(options, args, lib):
 
     window = Window()
     
-    window.world, window.view = worlds.default(), views.default()
+    window.world, window.view = worlds.water(), views.water()
     
     window.lib = lib
     

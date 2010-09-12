@@ -111,7 +111,12 @@ def _read_fits(file):
     shape = list(reversed(shape))
     bitpix = headers['BITPIX']
     count = reduce(operator.mul, shape)
-    open('temp.dat', 'wb').write(file.read(count * bitpix // 8))
+
+    #Would be this:
+    #open('temp.dat', 'wb').write(file.read(count * abs(bitpix) // 8))
+    #But zipfile has a bug when reading more than a few thousand 
+    # characters at once (probably 16 bit ints in there) so we do this:
+    open('temp.dat', 'wb').write(file.read())
     data = numpy.fromfile(open('temp.dat', 'rb'),
                           dtype=_rtypes[bitpix],
                           count=count)

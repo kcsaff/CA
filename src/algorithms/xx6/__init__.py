@@ -73,7 +73,7 @@ def evolve():
              
 
 
-generate.auto_generate(__name__, 'algorithm')
+generate.auto_generate(__name__)
 
 import life
 

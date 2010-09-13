@@ -81,7 +81,7 @@ class scrollable_displayer(object):
             for x in range(chart.shape[0]):
                 for y in range(chart.shape[1]):
                     states.add(chart[x, y])
-            print states
+            print states, palette
             raise ie
         pygame.display.flip()
         

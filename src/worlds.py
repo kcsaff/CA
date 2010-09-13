@@ -51,16 +51,20 @@ class World(simple.typed_object):
     def _stitch(self):
         self.stitch.stitch(self.charts)
         
-    def evolve(self, generations = 1):
+    def _evolve_check(self):
         if self._compiled_rule != self.rule:
             self.compile_rule()
         if self._compiled_topology != self.topology:
             self.compile_topology()
 
-        if self.generation == 0:
+        if (self.generation == 0
+                or not self._scratch_charts 
+                or self.charts[0].shape != self._scratch_charts[0].shape):
             self._stitch()
-        if not self._scratch_charts:
             self._create_scratch_charts()
+        
+    def evolve(self, generations = 1):
+        self._evolve_check()
             
         for _ in range(generations):
             for chart, scratch in zip(self.charts, self._scratch_charts):

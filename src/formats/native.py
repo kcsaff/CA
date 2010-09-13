@@ -112,6 +112,8 @@ class _reader(object):
             self.world.charts = self.atlases[0]
         if len(self.atlases) > 1:
             self.world._scratch_charts = self.atlases[1]
+        else:
+            self.world._scratch_charts = None
 
         return self.world, self.view
 
@@ -122,8 +124,11 @@ def _write_charts_png(z, world, view):
     w = png.Writer(size=world.charts[0].shape,
                    bitdepth=8,
                    palette=palette.to_rgb(view.palette))
-    for atlasno, atlas in enumerate((world.charts, 
-                                     world._scratch_charts)):
+    if getattr(world.rule, 'history', False):
+        atlases = (world.charts, world._scratch_charts)
+    else:
+        atlases = (world.charts,)
+    for atlasno, atlas in enumerate(atlases):
         for chartno, chart in enumerate(atlas):
             s = StringIO()
             w.write(s, numpy.transpose(chart))

@@ -56,6 +56,7 @@ class World(cascading_object):
 
         if self.generation == 0:
             self._stitch()
+        if not self._scratch_charts:
             self._create_scratch_charts()
             
         for _ in range(generations):

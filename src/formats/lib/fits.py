@@ -31,6 +31,28 @@ import operator
 
 logger = logging.getLogger('lib.fits')
 
+KEY_SIZE = 8
+CARD_SIZE = 80
+CARDS_PER_RECORD = 36
+RECORD_SIZE = CARD_SIZE * CARDS_PER_RECORD #2880
+
+def _to_record_multiple(value):
+    return value + (-value % RECORD_SIZE)
+
+def _read_partwise(file, amount):
+    """
+    Use when a filelike object doesn't always return enough bytes from
+    a .read method.
+    """
+    result = []
+    while amount > 0:
+        result.append(file.read(amount))
+        length = len(result[-1])
+        amount -= length
+        if length == 0:
+            break
+    return ''.join(result)
+
 def _read_value(value):
     if value == 'T':
         return True
@@ -60,9 +82,9 @@ def _read_all_headers(file):
     end_found = False
     headers = []
     while not end_found:
-        for _ in range(36):
-            header = file.read(80)
-            key = header[:8].strip() or None
+        for _ in range(CARDS_PER_RECORD):
+            header = file.read(CARD_SIZE)
+            key = header[:KEY_SIZE].strip() or None
             if header[8] == '=':
                 value = header[10:].split('/')[0].strip()
                 value = _read_value(value)
@@ -124,7 +146,9 @@ def _read_fits(file):
     #open('temp.dat', 'wb').write(file.read(count * abs(bitpix) // 8))
     #But zipfile has a bug when reading more than a few thousand 
     # characters at once (probably 16 bit ints in there) so we do this:
-    open('temp.dat', 'wb').write(_byte_reorder(file.read(), abs(bitpix) // 8))
+    bytedata = _read_partwise(file, _to_record_multiple(count * abs(bitpix) // 8))
+    bytedata = ''.join(bytedata)
+    open('temp.dat', 'wb').write(_byte_reorder(bytedata, abs(bitpix) // 8))
     data = numpy.fromfile(open('temp.dat', 'rb'),
                           dtype=_rtypes[bitpix],
                           count=count)
@@ -137,21 +161,25 @@ def _read_fits(file):
         raise
     return data, headers
 
+def _write_card(key, value, comment):
+    result = []
+    result.append(key[:KEY_SIZE].ljust(KEY_SIZE))
+    if value is not None:
+        result.append('= ')
+        result.append(_write_value(value))
+    if comment is not None:
+        result.append(' /')
+        result.append(comment)
+    return ''.join(result)[:CARD_SIZE].ljust(CARD_SIZE)
+    
+
 def _write_all_headers(file, headers):
     for header in headers:
-        fheader = [header[0][:8].ljust(8)]
-        if header[1] is not None:
-            fheader.append('= ')
-            fheader.append(_write_value(header[1]))
-        if header[2] is not None:
-            fheader.append(' /')
-            fheader.append(header[2])
-        file.write(''.join(fheader)[:80].ljust(80))
+        file.write(_write_card(*header))
     count = len(headers)
-    while count % 36 != 0:
-        file.write(' ' * 80)
+    while count % CARDS_PER_RECORD != 0:
+        file.write(' ' * CARD_SIZE)
         count += 1
-    print len(file.getvalue()), 36 * 80
 
 def _write_headers(file, data, headers={}):
     headerlist = []
@@ -167,11 +195,12 @@ def _write_headers(file, data, headers={}):
     _write_all_headers(file, headerlist)
 
 def _write_data(file, data):
-    print len(file.getvalue())
     data.tofile(open('temp.dat', 'wb')) #workaround
     #data.tofile(file) #doesn't work for StringIO :(
-    file.write(_byte_reorder(open('temp.dat', 'rb').read(), data.dtype.itemsize))
-    print len(file.getvalue())
+    bytedata = _byte_reorder(open('temp.dat', 'rb').read(), data.dtype.itemsize)
+    file.write(bytedata)
+    lenfill = -len(bytedata) % RECORD_SIZE
+    file.write(chr(0) * lenfill)
 
 def _write_fits(file, data, headers={}):
     _write_headers(file, data, headers)

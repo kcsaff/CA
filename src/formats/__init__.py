@@ -29,30 +29,33 @@ def read(filename, file=None):
     elif filename.endswith('.png'):
         import png
         return png.read(filename, file)
+    elif filename.endswith('.fits'):
+        import fits
+        return fits.read(filename, file)
     elif filename.startswith('meta') and filename.endswith('txt'):
         import meta
         return meta.read(filename, file)
     else:
         raise ValueError, 'Do not understand how to read file "%s"' % filename
 
-def write(filename, data):
-    import native
-    return native.write(filename, data)
+def write(filename, data, file=None, chart=(0,0)):
+    if filename.endswith('.zip'):
+        import native
+        return native.write(filename, data, file, chart)
+    elif filename.endswith('.fits'):
+        import fits
+        return fits.write(filename, data, file, chart)
+    else:
+        raise ValueError, 'Do not understand how to write file "%s"' % filename
 
 def unwrap(world, view, data):
     if 'rule' in data:
         world.rule = data['rule']
-    if 'chart' in data:
-        world.charts = [data['chart']]
-    if 'charts' in data:
-        world.charts = [data['charts']]
-        world._scratch_charts = None
-    if 'atlases' in data:
-        atlases = data['atlases']
-        if len(atlases) > 0:
-            world.charts = atlases[0]
-        if len(atlases) > 1:
-            world._scratch_charts = atlases[1]
+    atlases = get_atlases(data)
+    if len(atlases) > 0:
+        world.charts = atlases[0]
+    if len(atlases) > 1:
+        world._scratch_charts = atlases[1]
             
     if 'topology' in data:
         world.topology = data['topology']
@@ -66,21 +69,43 @@ def unwrap(world, view, data):
         
         
 def wrap(world, view):
+    result = {'rule': world.rule,
+              'topology': world.topology,
+              'toys': world.toys,
+              'generation': world.generation,
+            
+              'palette': view.palette,
+              'speed': view.speed,
+              'zoom': view.zoom,
+              'center': view.center,
+              }
+    set_atlases(result, world)
+    return result
+    
+def set_atlases(resource, world):
     if getattr(world.rule, 'history', False):
         atlases = (world.charts, world._scratch_charts)
     else:
         atlases = (world.charts,)
-    return {'rule': world.rule,
-            'chart': world.charts[0],
-            'charts': world.charts,
-            'atlases': atlases,
-            'topology': world.topology,
-            'toys': world.toys,
-            'generation': world.generation,
-            
-            'palette': view.palette,
-            'speed': view.speed,
-            'zoom': view.zoom,
-            'center': view.center,
-            }
+    for x, atlas in enumerate(atlases):
+        for y, chart in enumerate(atlas):
+            resource['chart(%d,%d)' % (x, y)] = chart
+    
+def get_atlases(resource):
+    atlases = []
+    for key in resource.keys():
+        if key.startswith('chart('):
+            nos = [int(x) for x in key.strip('chart()').split(',')]
+            while len(atlases) <= nos[0]:
+                atlases.append([])
+            while len(atlases[nos[0]]) <= nos[1]:
+                atlases[nos[0]].append(None)
+            atlases[nos[0]][nos[1]] = resource[key]
+    return atlases
+
+def get_subscripts(filename):
+    try:
+        return tuple([int(x) for x in filename.split('.')[1].split('-')])
+    except IndexError:
+        return (0,0)
     

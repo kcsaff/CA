@@ -18,17 +18,8 @@
 import qdict
 import common
 
-def read(filename, file=None):
+def _interpret(data):
     result = qdict.qdict()
-
-    evals = {'SPEED': float, #~milliseconds between frames
-             'ZOOM': eval,
-             'CENTER': str.split, #get later
-             'GENERATION': int,
-             }
-
-    data=common.read_hash(file or open(filename, 'r'),
-                          evals=evals)
 
     if 'SPEED' in data:
         result['speed'] = 2000.0 / data['SPEED']
@@ -47,6 +38,37 @@ def read(filename, file=None):
         result['topology'] = eval('topology(%s)' % data['WRAP'])
         
     return result
+
+_evals = {'SPEED': float, #~milliseconds between frames
+          'ZOOM': eval,
+          'CENTER': str.split, #get later
+          'GENERATION': int,
+          }
+
+def read(filename, file=None):
+    return _interpret(common.read_hash(file or open(filename, 'r'),
+                                       evals=_evals))
+
+
+def encode(data):
+    from StringIO import StringIO
+    meta = {'SPEED': [2000.0 / data['speed']],
+            'ZOOM': [data['zoom']],
+            'CENTER': ['%s %s' % tuple(data['center'])],
+            'GENERATION': [data['generation']],
+            'RULE': [data['rule'].format_args()],
+            'WRAP': [data['topology'].format_args()],
+            }
+    s = StringIO()
+    common.write_hash_raw(s, meta)
+    return s.getvalue()
+
+
+def decode(data):
+    from StringIO import StringIO
+    return _interpret(common.read_hash(StringIO(data),
+                                       evals=_evals))
+    
 
 def write(filename, data):
     raise NotImplementedError

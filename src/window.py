@@ -38,12 +38,12 @@ class Window(cascading_object):
         return self.view.speed
     
     def file_open(self, filename):
-        self.resources.update(formats.read(filename))
+        self.resources.update(formats.read(filename), True)
         formats.unwrap(self.world, self.view, self.resources)
         self.last_filename = filename    
     
     def file_save(self, filename):
-        self.resources.update(formats.wrap(self.world, self.view))
+        self.resources.update(formats.wrap(self.world, self.view), True)
         formats.write(filename, self.resources)
         self.last_filename = filename    
         

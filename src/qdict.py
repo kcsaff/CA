@@ -22,6 +22,7 @@ class qdict(dict):
         dict.__init__(self, *args, **kwargs)
         self._quality = {}
         self._source = {}
+    
     def __setitem__(self, key, value):
         key, quality, source = key, 0.0, None
         if isinstance(key, tuple):
@@ -36,15 +37,20 @@ class qdict(dict):
             dict.__setitem__(self, key, value)
             self._quality[key] = quality
             self._source[key] = source
-    def update(self, other):
-        if hasattr(other, '_quality'):
-            if hasattr(other, '_source'):
-                for key in other:
-                    self[key, other._quality[key], other._source[key]] = other[key]
+    def update(self, other, force = False):
+        if hasattr(other, '_quality') and hasattr(other, '_source'):
+            if force:
+                dict.update(self, other)
+                dict.update(self._quality, other._quality)
+                dict.update(self._source, other._source)
             else:
                 for key in other:
-                    self[key, other._quality[key]] = other[key]
+                    self[key, other._quality[key], other._source[key]] = other[key]
         else:
             dict.update(self, other)
     def source(self, key):
         return self._source[key]
+    def reduce_quality(self, amount):
+        for key in self._quality.keys():
+            self._quality[key] *= amount
+            

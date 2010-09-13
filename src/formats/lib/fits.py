@@ -28,6 +28,8 @@ python file that should work anywhere numpy is available.
 import logging
 import numpy
 import operator
+import time
+from compat import OrderedDict
 
 logger = logging.getLogger('lib.fits')
 
@@ -36,6 +38,33 @@ CARD_SIZE = 80
 CARDS_PER_RECORD = 36
 RECORD_SIZE = CARD_SIZE * CARDS_PER_RECORD #2880
 SPECIAL_RECORD_ID = 'SIMPLE  '
+
+class Hdu(object):
+    headers = OrderedDict()
+    data = None
+    def __getitem__(self, key):
+        if key.endswith('n'):
+            result = []
+            for n in range(1, 1000):
+                keyn = '%s%d' % (key, n)
+                if keyn in self.headers:
+                    result.append(self.headers[keyn])
+                else:
+                    return result
+        elif key in self.headers:
+            return self.headers[key]
+        else:
+            raise KeyError
+    def __setitem__(self, key, value):
+        if key.endswith('n'):
+            for n, subval in enumerate(value):
+                self.headers['%s%d' % (key, n + 1)] = subval
+        else:
+            self.headers[key] = value
+
+class Fits(object):
+    hdus = []
+    special_records = []
 
 def _to_record_multiple(value):
     return value + (-value % RECORD_SIZE)
@@ -59,6 +88,8 @@ def _read_value(value):
         return True
     elif value == 'F':
         return False
+    elif value.startswith("'") and value.endswith("'"):
+        return value[1:-1]
     try:
         return int(value)
     except ValueError:
@@ -77,7 +108,7 @@ def _write_value(value):
     elif isinstance(value, (int, float)):
         return repr(value).rjust(20)
     else:
-        return value
+        return "'%s'" % value
 
 def _read_all_headers(file):
     end_found = False
@@ -103,7 +134,7 @@ def _read_all_headers(file):
 
 def _read_headers(file):
     headers = _read_all_headers(file)
-    result = {}
+    result = OrderedDict()
     for key, value, comment in headers:
         if key in result:
             result[key] = '\n'.join((result[key], value))
@@ -159,6 +190,8 @@ def _read_data(file, headers):
         print shape, data.shape, count
         raise
     
+    return data.transpose()
+    
 def _read_special_records(file):
     result = []
     while True:
@@ -169,10 +202,13 @@ def _read_special_records(file):
             return result
     
 def _read_fits(file):
-    headers = _read_headers(file)
-    data = _read_data(file, headers)
-    special_records = _read_special_records(file)
-    return data, headers, special_records
+    result = Fits()
+    hdu = Hdu()
+    hdu.headers = _read_headers(file)
+    hdu.data = _read_data(file, result.headers)
+    result.hdus = [hdu]
+    result.special_records = _read_special_records(file)
+    return result
 
 def _write_card(key, value, comment):
     result = []
@@ -194,23 +230,52 @@ def _write_all_headers(file, headers):
         file.write(' ' * CARD_SIZE)
         count += 1
 
-def _write_headers(file, data, headers={}):
+def _write_headers(file, data, headers={}, ctype=[]):
     headerlist = []
+    
+    bigshape = []
+    indata = data
+    while not hasattr(indata, 'shape'):
+        bigshape.append(len(indata))
+        indata = indata[0]
+    
     headerlist.append(('SIMPLE', True, None))
-    headerlist.append(('BITPIX', _wtypes[data.dtype], None))
-    headerlist.append(('NAXIS', len(data.shape), None))
-    for i, dim in enumerate(reversed(data.shape)):
+    headerlist.append(('BITPIX', _wtypes[indata.dtype], None))
+    headerlist.append(('NAXIS', len(bigshape) + len(indata.shape), None))
+    for i, dim in enumerate(reversed(bigshape + list(indata.shape))):
         headerlist.append(('NAXIS%d' % (i + 1), dim, None))
+        
     for key, values in headers.items():
         for value in values.split('\n'):
             headerlist.append((key, value, None))
+    for i, ctypestr in enumerate(ctype):
+        headerlist.append(('CTYPE%d' % (i + 1), ctypestr, None))
+    if 'DATE' not in headers:
+        headerlist.append(('DATE', 
+                           time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime()),
+                           None
+                           ))
     headerlist.append(('END', None, None))
     _write_all_headers(file, headerlist)
+    
+def _do_write_data(file, data):
+    if hasattr(data, 'tofile'):
+        data.tofile(file)
+    else:
+        for item in data:
+            _do_write_data(file, item)
+            
+def _get_in_data(data, attr):
+    while not hasattr(data, attr):
+        data = data[0]
+    return getattr(data, attr)
 
 def _write_data(file, data):
-    data.tofile(open('temp.dat', 'wb')) #workaround
+    
+    _do_write_data(open('temp.dat', 'wb'), data) #workaround
     #data.tofile(file) #doesn't work for StringIO :(
-    bytedata = _byte_reorder(open('temp.dat', 'rb').read(), data.dtype.itemsize)
+    bytedata = _byte_reorder(open('temp.dat', 'rb').read(), 
+                             _get_in_data(data, 'dtype').itemsize)
     file.write(bytedata)
     lenfill = -len(bytedata) % RECORD_SIZE
     file.write(chr(0) * lenfill)
@@ -220,8 +285,11 @@ def _write_special_record(file, record):
         record = SPECIAL_RECORD_ID + record
     file.write(record[:RECORD_SIZE].ljust(RECORD_SIZE))
 
-def _write_fits(file, data, headers={}, special_records=[]):
-    _write_headers(file, data, headers)
+def _write_fits(file, data, 
+                headers={}, 
+                special_records=[],
+                ctype=[]):
+    _write_headers(file, data, headers, ctype=ctype)
     _write_data(file, data)
     for record in special_records:
         _write_special_record(file, record)
@@ -233,11 +301,12 @@ def read(filename):
         file = open(filename, 'rb')
     return _read_fits(file)
 
-def write(filename, data, headers={}, special_records=[]):
+def write(filename, data, headers={}, special_records=[], ctype=[]):
     if hasattr(filename, 'write'):
         file = filename
     else:
         file = open(filename, 'wb')
     return _write_fits(file, data, 
                        headers=headers, 
-                       special_records=special_records)
+                       special_records=special_records,
+                       ctype=ctype)

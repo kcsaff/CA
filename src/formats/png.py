@@ -19,6 +19,7 @@ import lib.png as png
 import qdict
 import views
 import numpy
+import formats
 
 def read(filename, file=None):
     result = qdict.qdict()
@@ -27,7 +28,7 @@ def read(filename, file=None):
     result['palette', 0.7, filename] = views.palette.from_rgb(p.palette())
     chart = numpy.zeros(shape=(width, height), dtype=numpy.uint8)
     chart[:,:] = numpy.transpose(list(pixels))
-    result['chart', 1.0, filename] = chart
+    result['chart(%d,%d)' % formats.get_subscripts(filename), 1.0, filename] = chart
     return result
 
 def write(filename, data):

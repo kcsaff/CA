@@ -234,7 +234,7 @@ def _interpret_raw(data, filename = None):
     if rule:
         result['rule', 1.0, filename] = rule
     if chart is not None:
-        result['chart', 1.0, filename] = chart
+        result['chart(0,0)', 1.0, filename] = chart
     if topology:
         result['topology', 1.0, filename] = topology
     if toys:

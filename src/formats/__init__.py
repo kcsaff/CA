@@ -15,19 +15,28 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-import mcell
-import native
 
 #Implementations of file formats should handle resources in terms of qdict's,
 # as defined in qdict.qdict.
 
-def read(filename):
-    if filename.endswith('.ca.zip'):
-        return native.read(filename)
+def read(filename, file=None):
+    if filename.endswith('.zip'):
+        import native
+        return native.read(filename, file)
+    elif filename.endswith('.mcl'):
+        import mcell
+        return mcell.read(filename, file)
+    elif filename.endswith('.png'):
+        import png
+        return png.read(filename, file)
+    elif filename.startswith('meta') and filename.endswith('txt'):
+        import meta
+        return meta.read(filename, file)
     else:
-        return mcell.read(filename)
+        raise ValueError, 'Do not understand how to read file "%s"' % filename
 
 def write(filename, data):
+    import native
     return native.write(filename, data)
 
 def unwrap(world, view, data):

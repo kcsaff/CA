@@ -15,13 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
+import lib.png as png
+import qdict
+import views
+import numpy
 
-def write(file, world, view):
-    f = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
-    #First try to save PNG data (charts with palettes)
-    _write_charts(f, world, view)
-    _write_meta(f, world, view)
-    f.close()
+def read(filename, file=None):
+    result = qdict.qdict()
+    p = png.Reader(file=file or open(filename, 'rb'))
+    width, height, pixels, meta = p.read()
+    result['palette', 0.7, filename] = views.palette.from_rgb(p.palette())
+    chart = numpy.zeros(shape=(width, height), dtype=numpy.uint8)
+    chart[:,:] = numpy.transpose(list(pixels))
+    result['chart', 1.0, filename] = chart
+    return result
 
-def read(file):
-    return _reader().read(filename)
+def write(filename, data):
+    raise NotImplementedError
+    pass

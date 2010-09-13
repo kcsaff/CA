@@ -24,6 +24,7 @@ import worlds, views
 import common
 from rules._rule import rule
 from topologies._topology import topology
+import qdict
             
 #    result.toys = set() #doesn't matter too much yet.
 #    TODO: need info about how chart data is stored.
@@ -117,8 +118,14 @@ class _reader(object):
 
         return self.world, self.view
 
-def read(filename):
-    return _reader().read(filename)
+def read(filename, file=None):
+    import formats
+    result = qdict.qdict()
+    z = zipfile.ZipFile(file or filename, 'r')
+    resources = z.namelist()
+    for resource in resources:
+        result.update(formats.read(resource, z.open(resource) ))
+    return result
 
 def _write_charts_png(z, data):
     w = png.Writer(size=data['chart'].shape,

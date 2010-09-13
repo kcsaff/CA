@@ -252,10 +252,9 @@ def _interpret_raw(data, filename = None):
         
     return result
         
-def read(file, filename = None):
-    if isinstance(file, (str, unicode)): #just a filename
-        filename = file
-        file = open(file, 'r')
+def read(filename, file=None):
+    if file is None: #just a filename
+        file = open(filename, 'r')
     return _interpret_raw(common.read_hash(file,
                                            joins=_line_join,
                                            defaults=_defaults,

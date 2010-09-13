@@ -160,6 +160,10 @@ def toggle_wrap(window, event):
 def step(window, event):
     window.world.evolve()
     
+def load_water(window, event):
+    import worlds, views
+    window.world, window.view = worlds.water(), views.water()
+    
 drag_map = {'M1~': drag_scroll(),
             'M2~': query(),
             'M3~': drag_draw(),
@@ -170,6 +174,7 @@ drag_map = {'M1~': drag_scroll(),
             'p': toggle_pause,
             'w': toggle_wrap,
             ' ': step,
+            'z': load_water,
             'file_open': file_open,
             'file_save': file_save,
             'Quit': quit,

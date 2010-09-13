@@ -48,11 +48,11 @@ def _read_value(value):
 
 def _write_value(value):
     if value is True:
-        return 'T'
+        return 'T'.rjust(20)
     elif value is False:
-        return 'F'
+        return 'F'.rjust(20)
     elif isinstance(value, (int, float)):
-        return repr(value)
+        return repr(value).rjust(20)
     else:
         return value
 
@@ -101,6 +101,14 @@ _wtypes = {numpy.dtype(numpy.uint8):8,
            numpy.dtype(numpy.float32):-32,
            numpy.dtype(numpy.float64):-64,
            }
+
+def _byte_reorder(string, length):
+    if length == 1:
+        return string
+    result = []
+    for i in range(0, len(string), length):
+        result.append(string[i:i+length][::-1])
+    return ''.join(result)
     
 def _read_fits(file):
     headers = _read_headers(file)
@@ -116,13 +124,17 @@ def _read_fits(file):
     #open('temp.dat', 'wb').write(file.read(count * abs(bitpix) // 8))
     #But zipfile has a bug when reading more than a few thousand 
     # characters at once (probably 16 bit ints in there) so we do this:
-    open('temp.dat', 'wb').write(file.read())
+    open('temp.dat', 'wb').write(_byte_reorder(file.read(), abs(bitpix) // 8))
     data = numpy.fromfile(open('temp.dat', 'rb'),
                           dtype=_rtypes[bitpix],
                           count=count)
     #And actually the whole temp file here is a workaround for numpy.fromfile
     # not being able to use the filelike object here.
-    data = data.reshape(shape)
+    try:
+        data = data.reshape(shape)
+    except ValueError:
+        print shape, data.shape, count
+        raise
     return data, headers
 
 def _write_all_headers(file, headers):
@@ -155,9 +167,11 @@ def _write_headers(file, data, headers={}):
     _write_all_headers(file, headerlist)
 
 def _write_data(file, data):
+    print len(file.getvalue())
     data.tofile(open('temp.dat', 'wb')) #workaround
     #data.tofile(file) #doesn't work for StringIO :(
-    file.write(open('temp.dat', 'rb').read())
+    file.write(_byte_reorder(open('temp.dat', 'rb').read(), data.dtype.itemsize))
+    print len(file.getvalue())
 
 def _write_fits(file, data, headers={}):
     _write_headers(file, data, headers)

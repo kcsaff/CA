@@ -22,6 +22,7 @@ import common
 import rules.life
 from topologies._topology import topology
 import registry
+import qdict
 
 #Basic MCell file format is ascii extension of Life 1.05.
 
@@ -195,7 +196,7 @@ _evals = {'SPEED': float,
           'WRAP': int,
           }
 
-def _interpret_raw(data):
+def _interpret_raw(data, filename = None):
     if 'MCell' not in data:
         raise ValueError, 'Not recognized as an MCell file.'
 
@@ -213,6 +214,7 @@ def _interpret_raw(data):
     #Fix states.
     #The state numbers used to define the grid may be different
     # from those we use internally, so we have to map them over.
+    #TODO: this shouldn't be here.
     for x in range(chart.shape[0]):
         for y in range(chart.shape[1]):
             chart[x,y] = states[chart[x,y]]
@@ -223,38 +225,40 @@ def _interpret_raw(data):
     
     delay = data['SPEED'] / 1000.0 #seconds to delay between frames
     
-    description = data['D']
+    description = data['D'] #ignored for now?
     
-    objects = _create_objects(data['DIV'])
+    toys = _create_objects(data['DIV'])
     
-    world = worlds.World()
-    view = views.View()
+    result = qdict.qdict()
     
     if rule:
-        world.rule = rule
+        result['rule', 1.0, filename] = rule
     if chart is not None:
-        world.charts = [chart]
+        result['chart', 1.0, filename] = chart
     if topology:
-        world.topology = topology
+        result['topology', 1.0, filename] = topology
+    if toys:
+        result['toys', 1.0, filename] = toys
         
     if palette:
-        view.palette = palette
+        result['palette', 1.0, filename] = palette
     else:
-        view.palette = views.palette.mcell(states)
+        result['palette', 0.5, '(MCell default)'] = views.palette.mcell(states)
     if delay:
-        view.speed = 2.0 / delay
+        result['speed', 0.5, filename] = 2.0 / delay
+        
     if description:
-        world.description = view.description = description
-    if objects:
-        world.objects = objects
+        result['description', 1.0, filename] = description
         
-    return world, view
+    return result
         
-def read(file):
+def read(file, filename = None):
     if isinstance(file, (str, unicode)): #just a filename
+        filename = file
         file = open(file, 'r')
     return _interpret_raw(common.read_hash(file,
                                            joins=_line_join,
                                            defaults=_defaults,
-                                           evals=_evals))
+                                           evals=_evals),
+                          filename=filename)
         

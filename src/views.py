@@ -15,10 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from cascading_object import cascading_object
+import simple
 
-class View(cascading_object):
-    pass
+class View(simple.typed_object):
+    def __init__(self):
+        simple.typed_object.__init__(self, 'view')
 
 def _mix(amount, color0, color1):
     result = 0
@@ -152,7 +153,7 @@ class palette(object):
         return result
 
 def default():
-    result = View(source='default')
+    result = View()
     result.center = (0,0)
     result.zoom = 1
     result.palette = palette.default
@@ -160,7 +161,7 @@ def default():
     return result
 
 def water():
-    result = View(source='water')
+    result = View()
     result.center = (0,0)
     result.zoom = 1
     result.palette = palette.grays

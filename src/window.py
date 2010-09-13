@@ -23,7 +23,7 @@ import formats
 import Queue
 import tk_dialogs
 import sys
-import rules
+import qdict
   
 class Window(cascading_object):
     
@@ -31,17 +31,20 @@ class Window(cascading_object):
     
     playing = True
     
+    def __init__(self):
+        self.resources = qdict.qdict()
+    
     def get_fps(self):
         return self.view.speed
     
     def file_open(self, filename):
-        new_world, new_view = formats.read(filename)
-        self.world.update(new_world)
-        self.view.update(new_view)    
+        self.resources.update(formats.read(filename))
+        formats.unwrap(self.world, self.view, self.resources)
         self.last_filename = filename    
     
     def file_save(self, filename):
-        formats.write(filename, self.world, self.view)
+        self.resources.update(formats.wrap(self.world, self.view))
+        formats.write(filename, self.resources)
         self.last_filename = filename    
         
     def file_open_dialog(self):

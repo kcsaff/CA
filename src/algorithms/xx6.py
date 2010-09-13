@@ -114,8 +114,6 @@ def _life(X):
 @register('compile_rule', type='brain', quality=1.0)
 def _brain(X):
     
-    print X
-    
     birth, survival, decay = X.birth, X.survival, X.decay
     
     lookup = numpy.ndarray(shape=0x20000, dtype=numpy.uint8)

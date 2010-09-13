@@ -18,12 +18,55 @@
 import mcell
 import native
 
+#Implementations of file formats should handle resources in terms of qdict's,
+# as defined in qdict.qdict.
+
 def read(filename):
     if filename.endswith('.ca.zip'):
         return native.read(filename)
     else:
         return mcell.read(filename)
 
-write = native.write
+def write(filename, data):
+    return native.write(filename, data)
 
-
+def unwrap(world, view, data):
+    if 'rule' in data:
+        world.rule = data['rule']
+    if 'chart' in data:
+        world.charts = [data['chart']]
+    if 'charts' in data:
+        world.charts = [data['charts']]
+    if 'atlases' in data:
+        atlases = data['atlases']
+        if len(atlases) > 0:
+            world.charts = atlases[0]
+        if len(atlases) > 1:
+            world._scratch_charts = atlases[1]
+            
+    if 'topology' in data:
+        world.topology = data['topology']
+    if 'toys' in data:
+        world.toys = data['toys']
+        
+    if 'palette' in data:
+        view.palette = data['palette']
+    if 'speed' in data:
+        view.speed = data['speed']
+        
+        
+def wrap(world, view):
+    return {'rule': world.rule,
+            'chart': world.charts[0],
+            'charts': world.charts,
+            'atlases': (world.charts, world._scratch_charts),
+            'topology': world.topology,
+            'toys': world.toys,
+            'generation': world.generation,
+            
+            'palette': view.palette,
+            'speed': view.speed,
+            'zoom': view.zoom,
+            'center': view.center,
+            }
+    

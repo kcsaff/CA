@@ -18,7 +18,7 @@
 import numpy
 import registry
 import topologies.torus
-from cascading_object import cascading_object
+import simple
 import rules.water, rules.life
 
 def _default_chart():
@@ -31,15 +31,18 @@ def _water_chart():
     chart[:,:] = numpy.random.rand(*chart.shape)
     chart *= 255.9
     return chart
-    
-class World(cascading_object):
+
+class World(simple.typed_object):
     generation = 0
     _scratch_charts = None
     _compiled_rule = None
     _compiled_topology = None
 
+    def __init__(self):
+        simple.typed_object.__init__(self, 'world')
+    
     def __setattr__(self, attr, value):
-        cascading_object.__setattr__(self, attr, value)
+        simple.typed_object.__setattr__(self, attr, value)
         if attr == 'rule':
             self.compile_rule()
         elif attr == 'topology':
@@ -89,7 +92,7 @@ class World(cascading_object):
         self._compiled_topology = self.topology
             
 def default():
-    result = World(source='default')
+    result = World()
     result.topology = topologies.torus.torus()
     result.charts = [_default_chart()]
     result.rule = rules.life.brain()
@@ -98,7 +101,7 @@ def default():
     return result          
   
 def water():
-    result = World(source='water')
+    result = World()
     result.topology = topologies.torus.torus()
     result.charts = [_water_chart()]
     result.rule = rules.water.dunes()

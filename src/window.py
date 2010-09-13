@@ -46,12 +46,12 @@ class Window(cascading_object):
         
     def file_open_dialog(self):
         #self.file_open('/home/kevin/cas/mcell/Generations/Faders.mcl')
-        self.file_open('/home/kevin/temp.ca.zip')
-        #tk_dialogs.file_open_dialog(self.last_filename)
+        #self.file_open('/home/kevin/temp.ca.zip')
+        tk_dialogs.file_open_dialog(self.last_filename)
         
     def file_save_dialog(self):
-        self.file_save('/home/kevin/temp.ca.zip')
-        #tk_dialogs.file_save_dialog(self.last_filename)
+        #self.file_save('/home/kevin/temp.ca.zip')
+        tk_dialogs.file_save_dialog(self.last_filename)
         
     def toggle_pause(self):
         self.playing = not self.playing

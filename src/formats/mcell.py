@@ -21,6 +21,7 @@ import worlds
 import common
 import rules.life
 from topologies._topology import topology
+import registry
 
 #Basic MCell file format is ascii extension of Life 1.05.
 
@@ -140,17 +141,17 @@ def _create_field(board, L):
     margin = 1
     dimensions = [int(d) + 2 * margin for d in board.strip().split('x')]
     result = numpy.zeros(dimensions, dtype=numpy.uint8)
-    print L
+    #print L
     x = y = margin
     for value in _rle_iterator(L):
         if value is END_LINE:
             x = margin
             y += 1
-            print '\n',
+            #print '\n',
         else:
             result[x, y] = value
             x += 1
-            print value,
+            #print value,
     return result
 
 def _create_topology(wrap):
@@ -204,7 +205,7 @@ def _interpret_raw(data):
                         data['COLORING'],
                         )
 
-    algorithm, table, states = registry.get.compile_rule(rule)
+    _, _, states = registry.get.compile_rule(rule)
     
     chart = _create_field(data['BOARD'],
                           data['L'])
@@ -229,8 +230,8 @@ def _interpret_raw(data):
     world = worlds.World()
     view = views.View()
     
-    if algorithm:
-        world.algorithm, world.table = algorithm, table
+    if rule:
+        world.rule = rule
     if chart is not None:
         world.charts = [chart]
     if topology:

@@ -40,8 +40,6 @@ class qdict(dict):
         if hasattr(other, '_quality'):
             if hasattr(other, '_source'):
                 for key in other:
-                    quality = other._quality[key]
-                    source = other._source[key]
                     self[key, other._quality[key], other._source[key]] = other[key]
             else:
                 for key in other:

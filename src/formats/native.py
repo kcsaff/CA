@@ -120,56 +120,51 @@ class _reader(object):
 def read(filename):
     return _reader().read(filename)
 
-def _write_charts_png(z, world, view):
-    w = png.Writer(size=world.charts[0].shape,
+def _write_charts_png(z, data):
+    w = png.Writer(size=data['chart'].shape,
                    bitdepth=8,
-                   palette=palette.to_rgb(view.palette))
-    if getattr(world.rule, 'history', False):
-        atlases = (world.charts, world._scratch_charts)
-    else:
-        atlases = (world.charts,)
-    for atlasno, atlas in enumerate(atlases):
+                   palette=palette.to_rgb(data['palette']))
+    for atlasno, atlas in enumerate(data['atlases']):
         for chartno, chart in enumerate(atlas):
             s = StringIO()
             w.write(s, numpy.transpose(chart))
             z.writestr('chart%d-%d.png' % (atlasno, chartno), 
                      s.getvalue())
 
-def _write_charts_fits(z, world, view):
-    for atlasno, atlas in enumerate((world.charts, 
-                                     world._scratch_charts)):
+def _write_charts_fits(z, data):
+    for atlasno, atlas in enumerate(data['atlases']):
         for chartno, chart in enumerate(atlas):
             s = StringIO()
             fits.write(s, chart.transpose())
             z.writestr('chart%d-%d.fits' % (atlasno, chartno), 
                        s.getvalue())
 
-def _write_charts(z, world, view):
-    if world.charts[0].dtype == numpy.dtype(numpy.uint8):
-        _write_charts_png(z, world, view)
-    elif world.charts[0].dtype == numpy.dtype(numpy.float64):
-        _write_charts_fits(z, world, view)
+def _write_charts(z, data):
+    if data['chart'].dtype == numpy.dtype(numpy.uint8):
+        _write_charts_png(z, data)
+    elif data['chart'].dtype == numpy.dtype(numpy.float64):
+        _write_charts_fits(z, data)
     else:
-        _write_charts_png(z, world, view)
+        _write_charts_png(z, data)
 
 
-def _write_meta(z, world, view):
-    meta = {'SPEED': [2000.0 / view.speed],
-            'ZOOM': [view.zoom],
-            'CENTER': ['%s %s' % tuple(view.center)],
-            'GENERATION': [world.generation],
-            'RULE': [world.rule.format_args()],
-            'WRAP': [world.topology.format_args()],
+def _write_meta(z, data):
+    meta = {'SPEED': [2000.0 / data['speed']],
+            'ZOOM': [data['zoom']],
+            'CENTER': ['%s %s' % tuple(data['center'])],
+            'GENERATION': [data['generation']],
+            'RULE': [data['rule'].format_args()],
+            'WRAP': [data['topology'].format_args()],
             }
     s = StringIO()
     common.write_hash_raw(s, meta)
     z.writestr('meta.txt', s.getvalue())
 
-def write(filename, world, view):
+def write(filename, data):
     f = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
     #First try to save PNG data (charts with palettes)
-    _write_charts(f, world, view)
-    _write_meta(f, world, view)
+    _write_charts(f, data)
+    _write_meta(f, data)
     f.close()
                        
                        

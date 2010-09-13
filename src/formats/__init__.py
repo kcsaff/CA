@@ -37,6 +37,7 @@ def unwrap(world, view, data):
         world.charts = [data['chart']]
     if 'charts' in data:
         world.charts = [data['charts']]
+        world._scratch_charts = None
     if 'atlases' in data:
         atlases = data['atlases']
         if len(atlases) > 0:
@@ -56,10 +57,14 @@ def unwrap(world, view, data):
         
         
 def wrap(world, view):
+    if getattr(world.rule, 'history', False):
+        atlases = (world.charts, world._scratch_charts)
+    else:
+        atlases = (world.charts,)
     return {'rule': world.rule,
             'chart': world.charts[0],
             'charts': world.charts,
-            'atlases': (world.charts, world._scratch_charts),
+            'atlases': atlases,
             'topology': world.topology,
             'toys': world.toys,
             'generation': world.generation,

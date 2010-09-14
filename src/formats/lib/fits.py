@@ -334,7 +334,7 @@ def _write_special_record(file, record):
 
 def _write_fits(file, data, 
                 headers={}, 
-                images=[],
+                images=[], #should be tuples of data and kwargs
                 special_records=[],
                 ctype=(),
                 crpix=()):
@@ -343,8 +343,7 @@ def _write_fits(file, data,
     _write_data(file, data)
 
     for image in images:
-        _write_headers(file, data, headers, ctype=ctype, crpix=crpix,
-                       extension='IMAGE')
+        _write_headers(file, image[0], extension='IMAGE', **image[1])
         _write_data(file, data)
         
     for record in special_records:
@@ -359,7 +358,7 @@ def read(filename):
 
 def write(filename, data, 
           headers={}, 
-          images=[],
+          images=[], #should be tuples of data and kwargs
           special_records=[], 
           ctype=(),
           crpix=()):

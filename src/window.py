@@ -49,13 +49,13 @@ class Window(cascading_object):
         
     def file_open_dialog(self):
         if sys.platform.startswith('linux'):
-            self.file_open('/home/kevin/temp.fits')
+            self.file_open('/home/kevin/chart.0-0.png')
             return
         tk_dialogs.file_open_dialog(self.last_filename)
         
     def file_save_dialog(self):
         if sys.platform.startswith('linux'):
-            self.file_save('/home/kevin/temp.fits')
+            self.file_save('/home/kevin/chart.0-0.png')
             return
         tk_dialogs.file_save_dialog(self.last_filename)
         

@@ -42,6 +42,9 @@ def write(filename, data, file=None, chart=(0,0)):
     if filename.endswith('.zip'):
         import native
         return native.write(filename, data, file, chart)
+    elif filename.endswith('.png'):
+        import png
+        return png.write(filename, data, file, chart)
     elif filename.endswith('.fits'):
         import fits
         return fits.write(filename, data, file, chart)

@@ -21,6 +21,17 @@ import views
 import numpy
 import formats
 
+def _write_charts_png(z, data):
+    w = png.Writer(size=data['chart'].shape,
+                   bitdepth=8,
+                   palette=palette.to_rgb(data['palette']))
+    for atlasno, atlas in enumerate(data['atlases']):
+        for chartno, chart in enumerate(atlas):
+            s = StringIO()
+            w.write(s, numpy.transpose(chart))
+            z.writestr('chart%d-%d.png' % (atlasno, chartno), 
+                     s.getvalue())
+
 def read(filename, file=None):
     result = qdict.qdict()
     p = png.Reader(file=file or open(filename, 'rb'))
@@ -31,6 +42,16 @@ def read(filename, file=None):
     result['chart(%d,%d)' % formats.get_subscripts(filename), 1.0, filename] = chart
     return result
 
-def write(filename, data):
-    raise NotImplementedError
-    pass
+def write(filename, data, file=None, chart=(0,0)):
+    image = data['chart(%d,%d)' % chart]
+    from views import palette
+    from StringIO import StringIO
+    w = png.Writer(size=image.shape,
+                   bitdepth=8,
+                   palette=palette.to_rgb(data['palette']))
+
+    s = StringIO()
+    w.write(s, numpy.transpose(image))
+    if not file:
+        file = open(filename, 'wb')
+    file.write(s.getvalue())

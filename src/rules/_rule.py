@@ -15,7 +15,3 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from simple import typed_object
-
-class rule(typed_object):
-    pass

@@ -38,3 +38,9 @@ class typed_object(object):
 
     def copy(self):
         return self.__class__(self.type, **self.kwargs)
+
+class rule(typed_object):
+    pass
+
+class topology(typed_object):
+    pass

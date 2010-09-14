@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from _rule import rule
+from simple import rule
 
 def water(moore=[0.0, 0.5, 0.0,
                  0.5, 0.0, 0.5,

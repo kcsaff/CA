@@ -43,7 +43,6 @@ class Hdu(object):
     headers = OrderedDict()
     data = None
     def __getitem__(self, key):
-        print key
         if key.endswith('*'):
             result = []
             for n in range(999):
@@ -64,8 +63,9 @@ class Hdu(object):
             self.headers[key] = value
 
 class Fits(object):
-    hdu = []
-    special_records = []
+    def __init__(self):
+        self.hdu = []
+        self.special_records = []
 
 def _to_record_multiple(value):
     return value + (-value % RECORD_SIZE)
@@ -139,14 +139,15 @@ def _interpret_header_record(record):
 def _read_record(file):
     return _read_partwise(file, RECORD_SIZE)
         
-def _read_all_headers(file):
-    headers = []
+def _read_all_headers(file, headers=None):
+    if headers is None:
+        headers = []
     while ('END', None, None) not in headers:
         headers.extend(_interpret_header_record(_read_record(file)))
     return headers
 
-def _read_headers(file):
-    headers = _read_all_headers(file)
+def _read_headers(file, headers=[]):
+    headers = _read_all_headers(file, headers)
     result = OrderedDict()
     for key, value, comment in headers:
         if key in result:
@@ -208,7 +209,7 @@ def _read_data(file, headers):
 def _read_special_records(file):
     result = []
     while True:
-        record = _read_partwise(file, RECORD_SIZE)
+        record = _read_record(file)
         if record:
             result.append(record)
         else:
@@ -217,11 +218,27 @@ def _read_special_records(file):
     
 def _read_fits(file):
     result = Fits()
+
+    #primary HDU
     hdu = Hdu()
     hdu.headers = _read_headers(file)
     hdu.data = _read_data(file, hdu.headers)
     result.hdu = [hdu]
-    result.special_records = _read_special_records(file)
+
+    #xtensions
+    record = _read_record(file)
+    while record.startswith('XTENSION'):
+        hdu = Hdu()
+        hdu.headers = _read_headers(file, _interpret_header_record(record))
+        hdu.data = _read_data(file, hdu.headers)
+        result.hdu.append(hdu)
+        record = _read_record(file)
+
+    #special records
+    while record:
+        result.special_records.append(record)
+        record = _read_record(file)
+
     return result
 
 def _write_card(key, value, comment):

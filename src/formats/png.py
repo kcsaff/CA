@@ -49,7 +49,8 @@ def write(filename, data, file=None, chart=(0,0)):
                    bitdepth=8,
                    palette=palette.to_rgb(data['palette']),
                    text=[{'key': META_TAG,
-                          'value': meta.encode(data)}])
+                          'value': meta.encode(data),
+                          'compression': True}])
     
     s = StringIO()
     w.write(s, numpy.transpose(image))

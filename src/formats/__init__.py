@@ -111,6 +111,6 @@ def get_atlases(resource):
 def get_subscripts(filename):
     try:
         return tuple([int(x) for x in filename.split('.')[1].split('-')])
-    except IndexError:
+    except ValueError:
         return (0,0)
     

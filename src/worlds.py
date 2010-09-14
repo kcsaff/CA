@@ -62,7 +62,8 @@ class World(simple.typed_object):
 
         if (self.generation == 0
                 or not self._scratch_charts 
-                or self.charts[0].shape != self._scratch_charts[0].shape):
+                or self.charts[0].shape != self._scratch_charts[0].shape
+                or self.charts[0].dtype != self._scratch_charts[0].dtype):
             self._stitch()
             self._create_scratch_charts()
         

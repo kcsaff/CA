@@ -20,15 +20,25 @@ import qdict
 import views
 import numpy
 import formats
+import meta
+
+META_TAG = 'CA SCANNER META'
 
 def read(filename, file=None):
     result = qdict.qdict()
     p = png.Reader(file=file or open(filename, 'rb'))
-    width, height, pixels, meta = p.read()
+    width, height, pixels, pmeta = p.read()
+    if 'text' in pmeta:
+        for text_item in pmeta['text']:
+            print text_item
+            if text_item['key'] == META_TAG:
+                result.update(meta.decode(text_item['value']))
     result['palette', 0.7, filename] = views.palette.from_rgb(p.palette())
     chart = numpy.zeros(shape=(width, height), dtype=numpy.uint8)
     chart[:,:] = numpy.transpose(list(pixels))
-    result['chart(%d,%d)' % formats.get_subscripts(filename), 1.0, filename] = chart
+    result['chart(%d,%d)' % formats.get_subscripts(filename), 
+           1.0, filename] = chart
+    print result
     return result
 
 def write(filename, data, file=None, chart=(0,0)):
@@ -37,8 +47,10 @@ def write(filename, data, file=None, chart=(0,0)):
     from StringIO import StringIO
     w = png.Writer(size=image.shape,
                    bitdepth=8,
-                   palette=palette.to_rgb(data['palette']))
-
+                   palette=palette.to_rgb(data['palette']),
+                   text=[{'key': META_TAG,
+                          'value': meta.encode(data)}])
+    
     s = StringIO()
     w.write(s, numpy.transpose(image))
     if not file:

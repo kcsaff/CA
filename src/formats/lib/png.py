@@ -319,7 +319,8 @@ class Writer:
                  planes=None,
                  colormap=None,
                  maxval=None,
-                 chunk_limit=2**20):
+                 chunk_limit=2**20,
+                 text=[]):
         """
         Create a PNG encoder object.
 
@@ -349,6 +350,8 @@ class Writer:
           Create an interlaced image.
         chunk_limit
           Write multiple ``IDAT`` chunks to save memory.
+        text
+          A list of pairs (key, value) to store in text chunks.
 
         The image size (in pixels) can be specified either by using the
         `width` and `height` arguments, or with the single `size`
@@ -580,6 +583,7 @@ class Writer:
         self.chunk_limit = chunk_limit
         self.interlace = bool(interlace)
         self.palette = check_palette(palette)
+        self.text = text
 
         self.color_type = 4*self.alpha + 2*(not greyscale) + 1*self.colormap
         assert self.color_type in (0,2,3,4,6)
@@ -704,6 +708,11 @@ class Writer:
             else:
                 write_chunk(outfile, 'bKGD',
                             struct.pack("!3H", *self.background))
+
+        # http://www.w3.org/TR/PNG/#11tEXt
+        for text in self.text:
+            write_chunk(outfile, 'tEXt', 
+                        chr(0).join((text['key'], text['value'])) )
 
         # http://www.w3.org/TR/PNG/#11IDAT
         if self.compression is not None:
@@ -1103,6 +1112,8 @@ class Reader:
         # past the 4 bytes that specify the chunk type).  See preamble
         # method for how this is used.
         self.atchunk = None
+        # The collection of text read.
+        self.text = []
 
         if _guess is not None:
             if isarray(_guess):
@@ -1593,6 +1604,12 @@ class Reader:
             if (self.colormap and len(data) != 3 or
                 not self.colormap and len(data) != self.planes):
                 raise FormatError("sBIT chunk has incorrect length.")
+        elif type == 'tEXt':
+            try:
+                key, value = data.split(chr(0))
+            except ValueError:
+                raise FormatError("No null separator in tEXt chunk.")
+            self.text.append({'key':key, 'value':value})
 
     def read(self):
         """
@@ -1659,7 +1676,7 @@ class Reader:
         for attr in 'greyscale alpha planes bitdepth interlace'.split():
             meta[attr] = getattr(self, attr)
         meta['size'] = (self.width, self.height)
-        for attr in 'gamma transparent background'.split():
+        for attr in 'gamma transparent background text'.split():
             a = getattr(self, attr, None)
             if a is not None:
                 meta[attr] = a

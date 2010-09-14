@@ -45,8 +45,8 @@ class Hdu(object):
     def __getitem__(self, key):
         if key.endswith('n'):
             result = []
-            for n in range(1, 1000):
-                keyn = '%s%d' % (key, n)
+            for n in range(999):
+                keyn = '%s%d' % (key[:-1], n + 1)
                 if keyn in self.headers:
                     result.append(self.headers[keyn])
                 else:
@@ -58,12 +58,12 @@ class Hdu(object):
     def __setitem__(self, key, value):
         if key.endswith('n'):
             for n, subval in enumerate(value):
-                self.headers['%s%d' % (key, n + 1)] = subval
+                self.headers['%s%d' % (key[:-1], n + 1)] = subval
         else:
             self.headers[key] = value
 
 class Fits(object):
-    hdus = []
+    hdu = []
     special_records = []
 
 def _to_record_multiple(value):
@@ -190,7 +190,7 @@ def _read_data(file, headers):
         print shape, data.shape, count
         raise
     
-    return data.transpose()
+    return data
     
 def _read_special_records(file):
     result = []
@@ -205,8 +205,8 @@ def _read_fits(file):
     result = Fits()
     hdu = Hdu()
     hdu.headers = _read_headers(file)
-    hdu.data = _read_data(file, result.headers)
-    result.hdus = [hdu]
+    hdu.data = _read_data(file, hdu.headers)
+    result.hdu = [hdu]
     result.special_records = _read_special_records(file)
     return result
 

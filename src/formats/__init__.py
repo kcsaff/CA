@@ -82,11 +82,13 @@ def wrap(world, view):
     set_atlases(result, world)
     return result
     
-def set_atlases(resource, world):
-    if getattr(world.rule, 'history', False):
-        atlases = (world.charts, world._scratch_charts)
-    else:
-        atlases = (world.charts,)
+def set_atlases(resource, atlases):
+    if hasattr(atlases, 'charts'):
+        if getattr(atlases.rule, 'history', False):
+            atlases = (atlases.charts, atlases._scratch_charts)
+        else:
+            atlases = (atlases.charts,)
+    
     for x, atlas in enumerate(atlases):
         for y, chart in enumerate(atlas):
             resource['chart(%d,%d)' % (x, y)] = chart

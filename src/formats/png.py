@@ -21,17 +21,6 @@ import views
 import numpy
 import formats
 
-def _write_charts_png(z, data):
-    w = png.Writer(size=data['chart'].shape,
-                   bitdepth=8,
-                   palette=palette.to_rgb(data['palette']))
-    for atlasno, atlas in enumerate(data['atlases']):
-        for chartno, chart in enumerate(atlas):
-            s = StringIO()
-            w.write(s, numpy.transpose(chart))
-            z.writestr('chart%d-%d.png' % (atlasno, chartno), 
-                     s.getvalue())
-
 def read(filename, file=None):
     result = qdict.qdict()
     p = png.Reader(file=file or open(filename, 'rb'))

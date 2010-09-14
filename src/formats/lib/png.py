@@ -711,8 +711,15 @@ class Writer:
 
         # http://www.w3.org/TR/PNG/#11tEXt
         for text in self.text:
-            write_chunk(outfile, 'tEXt', 
-                        chr(0).join((text['key'], text['value'])) )
+            if text.get('compression', False):
+                write_chunk(outfile, 'zTXt',
+                            ''.join((text['key'], 
+                                     chr(0), #separator
+                                     chr(0), #deflate
+                                     zlib.compress(text['value']) )) )
+            else:
+                write_chunk(outfile, 'tEXt', 
+                            chr(0).join((text['key'], text['value'])) )
 
         # http://www.w3.org/TR/PNG/#11IDAT
         if self.compression is not None:
@@ -1609,6 +1616,15 @@ class Reader:
                 key, value = data.split(chr(0))
             except ValueError:
                 raise FormatError("No null separator in tEXt chunk.")
+            self.text.append({'key':key, 'value':value})
+        elif type == 'zTXt':
+            try:
+                key, compressed = data.split(chr(0), 1)
+                if compressed[0] != chr(0): #only allowed compression type
+                    raise FormatError("Invalid text compression code.")
+            except ValueError:
+                raise FormatError("No null separator in tEXt chunk.")
+            value = zlib.decompress(compressed[1:])
             self.text.append({'key':key, 'value':value})
 
     def read(self):

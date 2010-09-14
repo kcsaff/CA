@@ -111,26 +111,38 @@ def _write_value(value):
     else:
         return "'%s'" % value
 
-def _read_all_headers(file):
-    end_found = False
+def _cards_of(record):
+    for i in range(0, len(record), CARD_SIZE):
+        yield(record[i : i+CARD_SIZE])
+
+def _interpret_header_record(record):
     headers = []
-    while not end_found:
-        for _ in range(CARDS_PER_RECORD):
-            header = file.read(CARD_SIZE)
-            key = header[:KEY_SIZE].strip() or None
-            if header[8] == '=':
-                value = header[10:].split('/')[0].strip()
-                value = _read_value(value)
-            else:
-                value = None
-            if '/' in header:
-                comment = header.split('/')[1]
-            else:
-                comment = None
-            if key == 'END':
-                end_found = True
-            elif key:
-                headers.append((key, value, comment))
+    for card in _cards_of(record):
+        key = card[:KEY_SIZE].strip() or None
+
+        if card[8] == '=':
+            value = card[10:].split('/')[0].strip()
+            value = _read_value(value)
+        else:
+            value = None
+
+        if '/' in card:
+            comment = card.split('/')[1]
+        else:
+            comment = None
+
+        if key:
+            headers.append((key, value, comment))
+
+    return headers
+
+def _read_record(file):
+    return _read_partwise(file, RECORD_SIZE)
+        
+def _read_all_headers(file):
+    headers = []
+    while ('END', None, None) not in headers:
+        headers.extend(_interpret_header_record(_read_record(file)))
     return headers
 
 def _read_headers(file):
@@ -232,7 +244,9 @@ def _write_all_headers(file, headers):
         file.write(' ' * CARD_SIZE)
         count += 1
 
-def _write_headers(file, data, headers={}, ctype=(), crpix=()):
+def _write_headers(file, data, headers={}, 
+                   ctype=(), crpix=(), 
+                   extension=None):
     headerlist = []
     
     bigshape = []
@@ -241,24 +255,36 @@ def _write_headers(file, data, headers={}, ctype=(), crpix=()):
         bigshape.append(len(indata))
         indata = indata[0]
     
-    headerlist.append(('SIMPLE', True, None))
+    if extension is None: #primary HDU
+        headerlist.append(('SIMPLE', True, None))
+    else:
+        headerlist.append(('XTENSION', extension))
     headerlist.append(('BITPIX', _wtypes[indata.dtype], None))
     headerlist.append(('NAXIS', len(bigshape) + len(indata.shape), None))
+    axis_comment = []
     for i, dim in enumerate(reversed(bigshape + list(indata.shape))):
-        headerlist.append(('NAXIS%d' % (i + 1), dim, None))
+        if len(ctype) > i:
+            comment = ctype[i]
+        else:
+            comment = None
+        axis_comment.append(comment)
+        headerlist.append(('NAXIS%d' % (i + 1), dim, comment))
+    if extension == 'IMAGE':
+        headerlist.append(('PCOUNT', 0, 'Number of parameters per group'))
+        headerlist.append(('GCOUNT', 1, 'Number of groups'))
         
-    for key, values in headers.items():
-        for value in values.split('\n'):
-            headerlist.append((key, value, None))
     for i, ctypestr in enumerate(ctype):
         headerlist.append(('CTYPE%d' % (i + 1), ctypestr, None))
     for i, crval in enumerate(crpix):
-        headerlist.append(('CRPIX%d' % (i + 1), crval, None))
+        headerlist.append(('CRPIX%d' % (i + 1), crval, axis_comment[i]))
     if 'DATE' not in headers:
         headerlist.append(('DATE', 
                            time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime()),
-                           None
+                           'yy-mm-ddThh:mm:ss (UTC)'
                            ))
+    for key, values in headers.items():
+        for value in values.split('\n'):
+            headerlist.append((key, value, None))
     headerlist.append(('END', None, None))
     _write_all_headers(file, headerlist)
     
@@ -291,11 +317,19 @@ def _write_special_record(file, record):
 
 def _write_fits(file, data, 
                 headers={}, 
+                images=[],
                 special_records=[],
                 ctype=(),
                 crpix=()):
+
     _write_headers(file, data, headers, ctype=ctype, crpix=crpix)
     _write_data(file, data)
+
+    for image in images:
+        _write_headers(file, data, headers, ctype=ctype, crpix=crpix,
+                       extension='IMAGE')
+        _write_data(file, data)
+        
     for record in special_records:
         _write_special_record(file, record)
 
@@ -308,6 +342,7 @@ def read(filename):
 
 def write(filename, data, 
           headers={}, 
+          images=[],
           special_records=[], 
           ctype=(),
           crpix=()):
@@ -317,6 +352,7 @@ def write(filename, data,
         file = open(filename, 'wb')
     return _write_fits(file, data, 
                        headers=headers, 
+                       images=images,
                        special_records=special_records,
                        ctype=ctype,
                        crpix=crpix)

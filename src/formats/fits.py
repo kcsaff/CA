@@ -63,7 +63,9 @@ def write(filename, data, file=None, chart=(0,0)):
         for j, chart in enumerate(list(atlas)):
             atlases[i][j] = chart.transpose()
             
-    extra = meta.encode(data)
+    meta_to_store = dict(data)
+    del meta_to_store['center'] #put in CRPIX in header.
+    extra = meta.encode(meta_to_store)
     special_records = []
     while extra:
         special_records.append(SPECIAL_RECORD_HEADER + extra[:SPECIAL_RECORD_SIZE])

@@ -29,7 +29,18 @@ import logging
 import numpy
 import operator
 import time
-from compat import OrderedDict
+
+#Get OrderedDict.
+try:
+    from collections import OrderedDict
+except ImportError:
+    try:
+        #Drop in replacement from http://pypi.python.org/pypi/ordereddict/
+        #put in accessible relative path
+        from ordereddict import OrderedDict
+    except ImportError:
+        #Order isn't __that__ important.
+        OrderedDict = dict
 
 logger = logging.getLogger('lib.fits')
 

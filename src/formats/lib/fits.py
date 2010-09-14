@@ -232,7 +232,7 @@ def _write_all_headers(file, headers):
         file.write(' ' * CARD_SIZE)
         count += 1
 
-def _write_headers(file, data, headers={}, ctype=[]):
+def _write_headers(file, data, headers={}, ctype=(), crpix=()):
     headerlist = []
     
     bigshape = []
@@ -252,6 +252,8 @@ def _write_headers(file, data, headers={}, ctype=[]):
             headerlist.append((key, value, None))
     for i, ctypestr in enumerate(ctype):
         headerlist.append(('CTYPE%d' % (i + 1), ctypestr, None))
+    for i, crval in enumerate(crpix):
+        headerlist.append(('CRPIX%d' % (i + 1), crval, None))
     if 'DATE' not in headers:
         headerlist.append(('DATE', 
                            time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime()),
@@ -290,8 +292,9 @@ def _write_special_record(file, record):
 def _write_fits(file, data, 
                 headers={}, 
                 special_records=[],
-                ctype=[]):
-    _write_headers(file, data, headers, ctype=ctype)
+                ctype=(),
+                crpix=()):
+    _write_headers(file, data, headers, ctype=ctype, crpix=crpix)
     _write_data(file, data)
     for record in special_records:
         _write_special_record(file, record)
@@ -303,7 +306,11 @@ def read(filename):
         file = open(filename, 'rb')
     return _read_fits(file)
 
-def write(filename, data, headers={}, special_records=[], ctype=[]):
+def write(filename, data, 
+          headers={}, 
+          special_records=[], 
+          ctype=(),
+          crpix=()):
     if hasattr(filename, 'write'):
         file = filename
     else:
@@ -311,4 +318,5 @@ def write(filename, data, headers={}, special_records=[], ctype=[]):
     return _write_fits(file, data, 
                        headers=headers, 
                        special_records=special_records,
-                       ctype=ctype)
+                       ctype=ctype,
+                       crpix=crpix)

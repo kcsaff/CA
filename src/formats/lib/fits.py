@@ -337,10 +337,11 @@ def _write_special_record(file, record):
 
 def _write_fits(file, data, 
                 headers={}, 
+                ctype=(),
+                crpix=(),
                 images=[], #should be tuples of data and kwargs
                 special_records=[],
-                ctype=(),
-                crpix=()):
+                ):
 
     _write_headers(file, data, headers, 
                    ctype=ctype, crpix=crpix, 
@@ -363,17 +364,19 @@ def read(filename):
 
 def write(filename, data, 
           headers={}, 
+          ctype=(),
+          crpix=(),
           images=[], #should be tuples of data and kwargs
           special_records=[], 
-          ctype=(),
-          crpix=()):
+          ):
     if hasattr(filename, 'write'):
         file = filename
     else:
         file = open(filename, 'wb')
     return _write_fits(file, data, 
                        headers=headers, 
+                       ctype=ctype,
+                       crpix=crpix,
                        images=images,
                        special_records=special_records,
-                       ctype=ctype,
-                       crpix=crpix)
+                       )

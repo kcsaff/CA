@@ -52,13 +52,21 @@ def read(filename, file=None):
 
 def encode(data):
     from StringIO import StringIO
-    meta = {'SPEED': [2000.0 / data['speed']],
-            'ZOOM': [data['zoom']],
-            'CENTER': ['%s %s' % tuple(data['center'])],
-            'GENERATION': [data['generation']],
-            'RULE': [data['rule'].format_args()],
-            'WRAP': [data['topology'].format_args()],
-            }
+
+    meta = {}
+    if 'speed' in data:
+        meta['SPEED'] = [2000.0 / data['speed']]
+    if 'zoom' in data:
+        meta['ZOOM'] = [data['zoom']]
+    if 'center' in data:
+        meta['CENTER'] = ['%s %s' % tuple(data['center'])]
+    if 'generation' in data:
+        meta['GENERATION'] = [data['generation']]
+    if 'rule' in data:
+        meta['RULE'] = [data['rule'].format_args()]
+    if 'topology' in data:
+        meta['WRAP'] = [data['topology'].format_args()]
+
     s = StringIO()
     common.write_hash_raw(s, meta)
     return s.getvalue()

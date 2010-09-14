@@ -40,7 +40,7 @@ if it goes above the max.
 import generate
 
 @generate.c
-def evolve():
+def dd1_evolve():
     """Evolve it."""
     return """
     PyArrayObject *input;
@@ -143,4 +143,4 @@ def _water(X):
     lookup.append((1.0 - X.damping) / sum(lookup))
     lookup.append((X.max + X.min) * X.damping / 2.0 + X.heat)
     lookup.extend((X.min, X.max, X.under, X.over))
-    return evolve, numpy.asarray(lookup, dtype = numpy.float), None
+    return dd1_evolve, numpy.asarray(lookup, dtype = numpy.float), None

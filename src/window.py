@@ -48,12 +48,15 @@ class Window(cascading_object):
         self.last_filename = filename    
         
     def file_open_dialog(self):
-        #self.file_open('/home/kevin/cas/mcell/Generations/Faders.mcl')
-        #self.file_open('/home/kevin/temp.ca.zip')
+        if sys.platform.startswith('linux'):
+            self.file_open('/home/kevin/temp.fits')
+            return
         tk_dialogs.file_open_dialog(self.last_filename)
         
     def file_save_dialog(self):
-        #self.file_save('/home/kevin/temp.ca.zip')
+        if sys.platform.startswith('linux'):
+            self.file_save('/home/kevin/temp.fits')
+            return
         tk_dialogs.file_save_dialog(self.last_filename)
         
     def toggle_pause(self):

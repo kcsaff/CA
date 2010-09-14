@@ -28,17 +28,18 @@ SPECIAL_RECORD_SIZE = fits.RECORD_SIZE - len(SPECIAL_RECORD_HEADER)
 def read(filename, file=None):
     result = qdict.qdict()
     data = fits.read(file or open(filename, 'rb'))
-    extra = ''.join([record[SPECIAL_RECORD_SIZE:] 
+    print data.special_records
+    extra = ''.join([record[len(SPECIAL_RECORD_HEADER):] 
                      for record in data.special_records
                      if record.startswith(SPECIAL_RECORD_HEADER)])
     result.update(meta.decode(extra))
+
     #result.reduce_quality(0.2) #We want these overridden by external data if necessary.
     result['palette', 0.1, filename] = views.palette.grays
    
-    naxis = data.hdu[0]['NAXISn']
-    ctype = data.hdu[0]['CTYPEn']
-    print naxis, ctype
-    if ctype[-1] == 'ATLAS' and ctype[-2] == 'CHART':
+    naxis = data.hdu[0]['NAXIS*']
+    ctype = data.hdu[0]['CTYPE*']
+    if ctype[-1] == 'HISTORY' and ctype[-2] == 'CHART':
         atlases = []
         for atlasno in range(naxis[-1]):
             atlas = []
@@ -69,4 +70,4 @@ def write(filename, data, file=None, chart=(0,0)):
     fits.write(file or open(filename, 'wb'), 
                atlases,
                special_records=special_records,
-               ctype=('X', 'Y', 'CHART', 'ATLAS'))
+               ctype=('X', 'Y', 'CHART', 'HISTORY'))

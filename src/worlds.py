@@ -52,6 +52,9 @@ class World(simple.typed_object):
         self.stitch.stitch(self.charts)
         
     def _evolve_check(self):
+        if self.rule is None:
+            raise RunTimeError
+
         if self._compiled_rule != self.rule:
             self.compile_rule()
         if self._compiled_topology != self.topology:

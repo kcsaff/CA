@@ -43,7 +43,8 @@ class Hdu(object):
     headers = OrderedDict()
     data = None
     def __getitem__(self, key):
-        if key.endswith('n'):
+        print key
+        if key.endswith('*'):
             result = []
             for n in range(999):
                 keyn = '%s%d' % (key[:-1], n + 1)
@@ -56,7 +57,7 @@ class Hdu(object):
         else:
             raise KeyError
     def __setitem__(self, key, value):
-        if key.endswith('n'):
+        if key.endswith('*'):
             for n, subval in enumerate(value):
                 self.headers['%s%d' % (key[:-1], n + 1)] = subval
         else:
@@ -199,6 +200,7 @@ def _read_special_records(file):
         if record:
             result.append(record)
         else:
+            print '_read_special_records', result
             return result
     
 def _read_fits(file):

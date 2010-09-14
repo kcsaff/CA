@@ -71,13 +71,23 @@ def write(filename, data, file=None, chart=(0,0)):
         special_records.append(SPECIAL_RECORD_HEADER + extra[:SPECIAL_RECORD_SIZE])
         extra = extra[SPECIAL_RECORD_SIZE:]
 
+    images = []
+
     if 'center' in data:
         center = data['center']
         crpix = [center[0] + 1, center[1] + 1, 1, 1]
+
+    if 'palette' in data:
+        import numpy
+        palette = numpy.array(data['palette'], dtype=numpy.int32)
+        images.append((palette, 
+                       {'ctype': ['COLOR']}
+                       ))
         
     fits.write(file or open(filename, 'wb'), 
                atlases,
                special_records=special_records,
                ctype=('X', 'Y', 'CHART', 'HISTORY'),
-               crpix=crpix
+               crpix=crpix,
+               images=images
                )

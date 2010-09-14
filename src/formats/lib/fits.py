@@ -263,7 +263,8 @@ def _write_all_headers(file, headers):
 
 def _write_headers(file, data, headers={}, 
                    ctype=(), crpix=(), 
-                   extension=None):
+                   extension=None,
+                   has_extensions=False):
     headerlist = []
     
     bigshape = []
@@ -275,7 +276,7 @@ def _write_headers(file, data, headers={},
     if extension is None: #primary HDU
         headerlist.append(('SIMPLE', True, None))
     else:
-        headerlist.append(('XTENSION', extension))
+        headerlist.append(('XTENSION', extension, None))
     headerlist.append(('BITPIX', _wtypes[indata.dtype], None))
     headerlist.append(('NAXIS', len(bigshape) + len(indata.shape), None))
     axis_comment = []
@@ -286,6 +287,8 @@ def _write_headers(file, data, headers={},
             comment = None
         axis_comment.append(comment)
         headerlist.append(('NAXIS%d' % (i + 1), dim, comment))
+    if has_extensions and extension == None:
+        headerlist.append(('EXTEND', True, None))
     if extension == 'IMAGE':
         headerlist.append(('PCOUNT', 0, 'Number of parameters per group'))
         headerlist.append(('GCOUNT', 1, 'Number of groups'))
@@ -339,12 +342,14 @@ def _write_fits(file, data,
                 ctype=(),
                 crpix=()):
 
-    _write_headers(file, data, headers, ctype=ctype, crpix=crpix)
+    _write_headers(file, data, headers, 
+                   ctype=ctype, crpix=crpix, 
+                   has_extensions=(len(images) != 0))
     _write_data(file, data)
 
     for image in images:
         _write_headers(file, image[0], extension='IMAGE', **image[1])
-        _write_data(file, data)
+        _write_data(file, image[0])
         
     for record in special_records:
         _write_special_record(file, record)

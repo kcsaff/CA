@@ -135,6 +135,7 @@ generate.auto_generate(__name__)
 import numpy
 
 from _util import register
+from _algorithm import algorithm
 
 @register('compile_rule', type='water', quality=1.0)
 def _water(X):
@@ -143,4 +144,6 @@ def _water(X):
     lookup.append((1.0 - X.damping) / sum(lookup))
     lookup.append((X.max + X.min) * X.damping / 2.0 + X.heat)
     lookup.extend((X.min, X.max, X.under, X.over))
-    return dd1_evolve, numpy.asarray(lookup, dtype = numpy.float), None
+    return algorithm('water', 
+                     evolve=dd1_evolve,
+                     table=numpy.asarray(lookup, dtype = numpy.float))

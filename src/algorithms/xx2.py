@@ -93,6 +93,7 @@ generate.auto_generate(__name__)
 
 import numpy
 from _util import bit_count, register
+from _algorithm import algorithm
     
 @register('compile_rule', type='life', quality=1.0)
 def _life(X):
@@ -105,9 +106,10 @@ def _life(X):
         else:
             lookup0.append(0)
             
-    return (evolve, 
-            numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80),
-            (0,1))
+    return algorithm('life',
+            evolve=evolve, 
+            table=numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80),
+            states=(0,1))
     
 @register('compile_rule', type='brain', quality=0.9)
 def _brain(X):
@@ -130,6 +132,8 @@ def _brain(X):
         else: #dying
             lookup[i] = ((i >> 9) * 2 + 2) % mdecay
             
-    return (evolve, 
-            lookup, 
-            range(2) + range(2, (X.decay + 1) * 2, 2)  )
+    return algorithm('brain',
+            evolve=evolve, 
+            table=lookup, 
+            states=range(2) + range(2, (X.decay + 1) * 2, 2),
+            )

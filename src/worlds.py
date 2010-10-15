@@ -19,7 +19,7 @@ import numpy
 import registry
 import topologies.torus
 import simple
-import rules.water, rules.life
+import rules.water, rules.life, rules.redox
 
 def _default_chart():
     chart = numpy.zeros(shape=(640, 480), dtype=numpy.uint8)
@@ -53,9 +53,9 @@ class World(simple.typed_object):
         
     def _evolve_check(self):
         if self.rule is None:
-            raise RunTimeError
+            raise RuntimeError
 
-        if self._compiled_rule != self.rule:
+        if self.algorithm.rule != self.rule:
             self.compile_rule()
         if self._compiled_topology != self.topology:
             self.compile_topology()
@@ -72,7 +72,7 @@ class World(simple.typed_object):
             
         for _ in range(generations):
             for chart, scratch in zip(self.charts, self._scratch_charts):
-                self.algorithm(chart, scratch, self.table)
+                self.algorithm(chart, scratch)
             self.charts, self._scratch_charts = self._scratch_charts, self.charts
             self._stitch()
             for toy in self.toys:
@@ -92,8 +92,8 @@ class World(simple.typed_object):
         return self.charts[0][mapped_point]    
 
     def compile_rule(self):
-        self.algorithm, self.table, _ = registry.get.compile_rule(self.rule)
-        self._compiled_rule = self.rule
+        self.algorithm = registry.get.compile_rule(self.rule)
+        self.algorithm.rule = self.rule
 
     def compile_topology(self):
         self.stitch = registry.get.compile_topology(self.topology)
@@ -103,7 +103,7 @@ def default():
     result = World()
     result.topology = topologies.torus.torus()
     result.charts = [_default_chart()]
-    result.rule = rules.life.brain()
+    result.rule = rules.life.brain()#rules.redox.redox() #rules.life.brain()
     result.toys = set()
     result.generation = 0
     return result          

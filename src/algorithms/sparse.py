@@ -40,6 +40,7 @@ def evolve(input, output, lookup):
         
 
 from _util import register
+from _algorithm import algorithm
 import numpy
     
 @register('compile_rule', type='redox', quality=1.0)
@@ -47,5 +48,9 @@ def _redox(X):
     lookup = X.copy()
     lookup.reduction = numpy.array(lookup.reduction, numpy.uint8)
     states = range(max(lookup.activation.keys()) + 1)
-    return evolve, lookup, states
+    return algorithm('redox',
+                     evolve=evolve,
+                     table=lookup,
+                     states=states,
+                     chart='sparse')
     

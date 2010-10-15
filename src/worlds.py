@@ -21,16 +21,6 @@ import topologies.torus
 import simple
 import rules.water, rules.life, rules.redox
 
-def _default_chart():
-    chart = numpy.zeros(shape=(640, 480), dtype=numpy.uint8)
-    chart[:,:] = numpy.random.randint(0, 2, size=chart.shape)
-    return chart
-
-def _water_chart():
-    chart = numpy.zeros(shape=(640, 480), dtype=numpy.float)
-    chart[:,:] = numpy.random.rand(*chart.shape)
-    chart *= 255.9
-    return chart
 
 class World(simple.typed_object):
     generation = 0
@@ -40,6 +30,7 @@ class World(simple.typed_object):
 
     def __init__(self):
         simple.typed_object.__init__(self, 'world')
+        self.toys = self.toys or set()
     
     def __setattr__(self, attr, value):
         simple.typed_object.__setattr__(self, attr, value)
@@ -83,12 +74,12 @@ class World(simple.typed_object):
         self._scratch_charts = [chart.copy() for chart in self.charts]
             
     def set(self, point, state):
-        mapped_point = self.stitch.map_point(point, self.charts[0])
+        mapped_point = self.charts[0].map_point(point)
         for chart in self.charts: #This can't be _quite_ right.
             chart[tuple(mapped_point)] = state   
             
     def get(self, point):
-        mapped_point = self.stitch.map_point(point, self.charts[0])
+        mapped_point = self.charts[0].map_point(point)
         return self.charts[0][mapped_point]    
 
     def compile_rule(self):
@@ -111,14 +102,10 @@ def default():
     result = World()
     result.topology = topologies.torus.torus(640, 480)
     result.rule = rules.life.brain()#rules.redox.redox() #rules.life.brain()
-    result.toys = set()
-    result.generation = 0
     return result          
   
 def water():
     result = World()
     result.topology = topologies.torus.torus(640, 480)
     result.rule = rules.water.dunes()
-    result.toys = set()
-    result.generation = 0
     return result

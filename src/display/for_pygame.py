@@ -53,16 +53,17 @@ class scrollable_displayer(object):
         
         origin = [center[i] - pixels.shape[i] // 2 for i in (0,1)]
 
-        if chart.dtype == numpy.uint8:
+        data = chart.data
+        if data.dtype == numpy.uint8:
             pass #okay
-        elif chart.dtype == numpy.float:
-            chart = numpy.cast[numpy.uint8](chart)
+        elif data.dtype == numpy.float:
+            data = numpy.cast[numpy.uint8](data)
         
         try:
             while x < pixels.shape[0]:
                 y = next_y = 0
                 while y < pixels.shape[1]:
-                    view = chart.map_slice((origin[0] + x, origin[1] + y))
+                    view = chart.map_slice((origin[0] + x, origin[1] + y), data)
                     next_x = min(x + view.shape[0], pixels.shape[0])
                     next_y = min(y + view.shape[1], pixels.shape[1])
                     pixels[x:next_x, y:next_y] = numpy.take(palette, view[:next_x-x,:next_y-y])

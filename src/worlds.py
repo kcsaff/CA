@@ -97,6 +97,7 @@ class World(simple.typed_object):
                            for chart in self.charts]
         elif self.algorithm:
             self.charts = [registry.get.create_chart(self.algorithm, self.topology)]
+        self._compiled_topology = self.topology
             
 def default():
     result = World()

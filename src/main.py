@@ -44,7 +44,9 @@ def main():
         os.chdir(dirname)
 
     for directory in ['algorithms',
-                      'topologies']:
+                      'topologies',
+                      'charts',
+                      ]:
         registry.auto_register(os.path.join(os.path.dirname(__file__),
                                             directory))
 

@@ -42,12 +42,10 @@ class scrollable_displayer(object):
         palette = view.palette
         chart = world.charts[0]
         center = view.center
-        fun = world.stitch.map_slice
-        assert fun
-        self.do_display(pixels, palette, chart, center, fun)
+        self.do_display(pixels, palette, chart, center)
         
     @classmethod
-    def do_display(cls, pixels, palette, chart, center, fun):
+    def do_display(cls, pixels, palette, chart, center):
         if isinstance(pixels, pygame.Surface):
             pixels = surfarray.pixels2d(pixels)
         x = y = 0
@@ -64,8 +62,7 @@ class scrollable_displayer(object):
             while x < pixels.shape[0]:
                 y = next_y = 0
                 while y < pixels.shape[1]:
-                    view = fun((origin[0] + x, origin[1] + y),
-                                chart, 1)
+                    view = chart.map_slice((origin[0] + x, origin[1] + y))
                     next_x = min(x + view.shape[0], pixels.shape[0])
                     next_y = min(y + view.shape[1], pixels.shape[1])
                     pixels[x:next_x, y:next_y] = numpy.take(palette, view[:next_x-x,:next_y-y])
@@ -99,7 +96,6 @@ class scrollable_zoomable_displayer(scrollable_displayer):
         chart = world.charts[0]
         center = view.center
         zoom = view.zoom
-        fun = world.stitch.map_slice
         
         if zoom == 1:
             return scrollable_displayer.display(self, world, view)
@@ -107,7 +103,7 @@ class scrollable_zoomable_displayer(scrollable_displayer):
             temp_shape = [d // zoom + 1 for d in pixels.shape]
             if self.temp_surface is None or self.temp_surface.get_size() != temp_shape:
                 self.temp_surface = pygame.Surface(temp_shape, depth=32)
-            scrollable_displayer.do_display(self.temp_surface, palette, chart, center, fun)
+            scrollable_displayer.do_display(self.temp_surface, palette, chart, center)
             if zoom > 1:
                 pygame.transform.scale(self.temp_surface, pixels.shape, pygame.display.get_surface())
             else: #Way zoomed out.

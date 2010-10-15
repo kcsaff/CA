@@ -144,6 +144,6 @@ def _water(X):
     lookup.append((1.0 - X.damping) / sum(lookup))
     lookup.append((X.max + X.min) * X.damping / 2.0 + X.heat)
     lookup.extend((X.min, X.max, X.under, X.over))
-    return algorithm('water', 
+    return algorithm('floatscan', 
                      evolve=dd1_evolve,
                      table=numpy.asarray(lookup, dtype = numpy.float))

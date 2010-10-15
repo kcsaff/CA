@@ -15,9 +15,4 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from _topology import topology
-
-def projective_plane(width, height):
-    return topology('projective plane',
-                    width=width,
-                    height=height)
+import registry

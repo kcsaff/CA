@@ -15,46 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from _topology import register, topology
+from _topology import topology
 
-class _torus(object):
-    @staticmethod
-    def stitch(array, margin = 1):
-        if isinstance(array, list):
-            for chart in array:
-                _torus.stitch(chart, margin)
-            return
-    
-        if margin == 1: #optimization
-            return _torus.stitch_1(array, margin)
-    
-        array[-margin:,:] = array[margin:margin * 2,:]
-        array[:margin,:] = array[-margin * 2:-margin,:]
-        array[:,-margin:] = array[:,margin:margin * 2]
-        array[:,:margin] = array[:,-margin * 2:-margin]
-
-    @staticmethod
-    def stitch_1(array, margin = 1):
-        array[-1,:] = array[1,:]
-        array[0,:] = array[-2,:]
-        array[:,-1] = array[:,1]
-        array[:,0] = array[:,-2]
-
-    @staticmethod
-    def map_point(point, array, margin = 1):
-        return (point[0] % (array.shape[0] - margin*2),
-                point[1] % (array.shape[1] - margin*2))
-
-    @staticmethod
-    def map_slice(upper_left, array, margin = 1):
-        x0, y0 = _torus.map_point(upper_left, array, margin)
-        x1, y1 = (array.shape[0] - margin*2,
-                  array.shape[1] - margin*2)
-        return array[x0:x1, y0:y1]
-
-@register('compile_topology', type='torus')
-def _go(*args):
-    return _torus
-
-def torus():
-    return topology('torus')
+def torus(width, height):
+    return topology('torus',
+                    width=width,
+                    height=height)

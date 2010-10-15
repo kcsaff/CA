@@ -15,36 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
-from _topology import register, topology
-import numpy
+from _topology import topology
 
-class _rectangle(object):
-    @staticmethod
-    def stitch(array, margin = 1):
-        return
-
-    @staticmethod
-    def map_point(point, array, margin = 1):
-        return point
-
-    @staticmethod
-    def map_slice(upper_left, array, margin = 1):
-        x, y = _rectangle.map_point(upper_left, array, margin)
-        if x < 0 and y < 0:
-            return numpy.zeros(shape=(-x, -y), dtype=numpy.uint8)
-        elif x < 0:
-            return numpy.zeros(shape=(-x, array.shape[1]), dtype=numpy.uint8)
-        elif y < 0:
-            return numpy.zeros(shape=(array.shape[0], -y), dtype=numpy.uint8)
-        elif x >= array.shape[0] or y >= array.shape[0]:
-            return numpy.zeros(shape=array.shape, dtype=numpy.uint8)
-        else:
-            return array[x:, y:]
-
-
-@register('compile_topology', type='rectangle')
-def _go(*args):
-    return _rectangle
-
-def rectangle():
-    return topology('rectangle')
+def rectangle(width, height):
+    return topology('rectangle',
+                    width=width,
+                    height=height)

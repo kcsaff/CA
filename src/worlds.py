@@ -49,7 +49,7 @@ class World(simple.typed_object):
             self.compile_topology()
     
     def _stitch(self):
-        self.stitch.stitch(self.charts)
+        self.charts[0].stitch(self.charts)
         
     def _evolve_check(self):
         if self.rule is None:
@@ -94,15 +94,22 @@ class World(simple.typed_object):
     def compile_rule(self):
         self.algorithm = registry.get.compile_rule(self.rule)
         self.algorithm.rule = self.rule
+        if self.charts:
+            self.charts = [registry.get.convert_chart(chart, self.algorithm)
+                           for chart in self.charts]
+        elif self.topology:
+            self.charts = [registry.get.create_chart(self.algorithm, self.topology)]
 
     def compile_topology(self):
-        self.stitch = registry.get.compile_topology(self.topology)
-        self._compiled_topology = self.topology
+        if self.charts:
+            self.charts = [registry.get.change_topology(chart, self.topology)
+                           for chart in self.charts]
+        elif self.algorithm:
+            self.charts = [registry.get.create_chart(self.algorithm, self.topology)]
             
 def default():
     result = World()
-    result.topology = topologies.torus.torus()
-    result.charts = [_default_chart()]
+    result.topology = topologies.torus.torus(640, 480)
     result.rule = rules.life.brain()#rules.redox.redox() #rules.life.brain()
     result.toys = set()
     result.generation = 0
@@ -110,8 +117,7 @@ def default():
   
 def water():
     result = World()
-    result.topology = topologies.torus.torus()
-    result.charts = [_water_chart()]
+    result.topology = topologies.torus.torus(640, 480)
     result.rule = rules.water.dunes()
     result.toys = set()
     result.generation = 0

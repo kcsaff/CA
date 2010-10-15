@@ -28,8 +28,11 @@ class _type_registry(object):
     def __init__(self):
         self.functions = {}
         self.quality = {}
-    def __call__(self, obj):
-        return self.functions[obj.type](obj)
+    def __call__(self, *objs):
+        if len(objs) == 1:
+            return self.functions[objs[0].type](objs[0])
+        else:
+            return self.functions[tuple([obj.type for obj in objs])](*objs)
     def insert(self, type, quality, function):
         if type not in self.functions or quality > self.quality[type]:
             self.functions[type] = function

@@ -106,7 +106,7 @@ def _life(X):
         else:
             lookup0.append(0)
             
-    return algorithm('life',
+    return algorithm('bytescan',
             evolve=evolve, 
             table=numpy.tile(numpy.asarray(lookup0, dtype = numpy.uint8), 0x80),
             states=(0,1))
@@ -132,7 +132,7 @@ def _brain(X):
         else: #dying
             lookup[i] = ((i >> 9) * 2 + 2) % mdecay
             
-    return algorithm('brain',
+    return algorithm('bytescan',
             evolve=evolve, 
             table=lookup, 
             states=range(2) + range(2, (X.decay + 1) * 2, 2),

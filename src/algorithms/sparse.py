@@ -48,9 +48,8 @@ def _redox(X):
     lookup = X.copy()
     lookup.reduction = numpy.array(lookup.reduction, numpy.uint8)
     states = range(max(lookup.activation.keys()) + 1)
-    return algorithm('redox',
+    return algorithm('sparse',
                      evolve=evolve,
                      table=lookup,
-                     states=states,
-                     chart='sparse')
+                     states=states)
     

@@ -61,5 +61,6 @@ def _floatscan_to_projective_plane(c, top):
                  )
 
 @register('convert_chart', type=('floatscan', 'floatscan'), quality=1.0)
-def _floatscan_convert(source, _):
+def _floatscan_convert(source, what):
+    source.margin = what.margin
     return source

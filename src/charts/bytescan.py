@@ -60,5 +60,6 @@ def _bytescan_to_projective_plane(c, top):
                  )
 
 @register('convert_chart', type=('bytescan', 'bytescan'), quality=1.0)
-def _bytescan_convert(source, _):
+def _bytescan_convert(source, what):
+    source.margin = what.margin
     return source

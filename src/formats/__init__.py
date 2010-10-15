@@ -19,6 +19,9 @@
 #Implementations of file formats should handle resources in terms of qdict's,
 # as defined in qdict.qdict.
 
+import numpy
+from charts._chart import chart
+
 def read(filename, file=None):
     if filename.endswith('.zip'):
         import native
@@ -54,11 +57,7 @@ def write(filename, data, file=None, chart=(0,0)):
 def unwrap(world, view, data):
     if 'rule' in data:
         world.rule = data['rule']
-    atlases = get_atlases(data)
-    if len(atlases) > 0:
-        world.charts = atlases[0]
-    if len(atlases) > 1:
-        world._scratch_charts = atlases[1]
+    unwrap_atlases(data, world)
             
     if 'topology' in data:
         world.topology = data['topology']
@@ -82,16 +81,37 @@ def wrap(world, view):
               'zoom': view.zoom,
               'center': view.center,
               }
-    set_atlases(result, world)
+    wrap_atlases(world, result)
     return result
+
+def unwrap_chart(data):
+    if data.dtype == numpy.uint8:
+        return chart('bytescan',
+                     data=data)
+    elif data.dtype == numpy.float:
+        return chart('floatscan',
+                     data=data)
+
+def unwrap_atlas(atlas):
+    return [unwrap_chart(chart) for chart in atlas]
+
+def unwrap_atlases(data, world):
+    atlases = get_atlases(data)
+    if len(atlases) > 0:
+        world.charts = atlases[0]
+    if len(atlases) > 1:
+        world._scratch_charts = atlases[1]
+    
+def wrap_atlases(world, resource):
+    if getattr(world.rule, 'history', False):
+        atlases = ([chart.data for chart in world.charts], 
+                   [chart.data for chart in world._scratch_charts])
+    else:
+        atlases = ([chart.data for chart in world.charts],)
+    set_atlases(resource, atlases)
+    
     
 def set_atlases(resource, atlases):
-    if hasattr(atlases, 'charts'):
-        if getattr(atlases.rule, 'history', False):
-            atlases = (atlases.charts, atlases._scratch_charts)
-        else:
-            atlases = (atlases.charts,)
-    
     for x, atlas in enumerate(atlases):
         for y, chart in enumerate(atlas):
             resource['chart(%d,%d)' % (x, y)] = chart

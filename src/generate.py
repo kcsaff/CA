@@ -252,7 +252,7 @@ def inline(code, path=None, language='c'):
     if code in _inlined:
         return _inlined[code]
     # Name will be a hash of the code, to guarantee uniqueness.
-    module_name = hashlib.md5(code).hexdigest()
+    module_name = 'H' + hashlib.md5(code).hexdigest()
     if module_name in _inlined:
         _inlined[code] = _inlined[module_name]
         return _inlined[code]

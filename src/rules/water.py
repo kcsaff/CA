@@ -16,12 +16,13 @@
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
 from simple import rule
+import numpy
 
 def water(moore=[0.0, 0.5, 0.0,
                  0.5, 0.0, 0.5,
                  0.0, 0.5, 0.0],
           history = -1.0,
-          damping = 0.03,
+          damping = 0.001,
           heat = 0,
           min = 0.0, max = 255.9,
           under = 0.0, over = 255.9
@@ -55,15 +56,23 @@ def dunes():
                  under = 0.0, over = 255.9)
     
 def aurora():
-    
-    lookup = [0.10, 0.20, 0.10,
-              0.20, 0.00, 0.20,
-              0.10, 0.20, 0.10,
-              -0.20,
-              1.0, 
-              1.0,
-              0.0, 255.9,
-              0.0, 0.0]
-    return numpy.asarray(lookup, dtype = numpy.float)
+    return water(moore=[0.10, 0.20, 0.10,
+                        0.20, 0.00, 0.20,
+                        0.10, 0.20, 0.10],
+                 history = -0.20,
+                 damping = 0.0,
+                 heat = 1.0,
+                 min = 0.0, max = 255.9,
+                 under = 0.0, over = 0.0)
+#        
+#    lookup = [0.10, 0.20, 0.10,
+#              0.20, 0.00, 0.20,
+#              0.10, 0.20, 0.10,
+#              -0.20,
+#              1.0, 
+#              1.0,
+#              0.0, 255.9,
+#              0.0, 0.0]
+#    return numpy.asarray(lookup, dtype = numpy.float)
 
     

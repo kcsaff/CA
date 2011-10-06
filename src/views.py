@@ -15,11 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy
 import simple
 
 class View(simple.typed_object):
-    def __init__(self):
-        simple.typed_object.__init__(self, 'view')
+    center = (0,0)
+    zoom = 1
+    speed = 60
+    def __init__(self, **kwargs):
+        simple.typed_object.__init__(self, 'view', **kwargs)
+    def __call__(self, chart):
+        return self.colorize(chart, self.palette)
 
 def _mix(amount, color0, color1):
     result = 0
@@ -151,20 +157,21 @@ class palette(object):
         for i, state in enumerate(states):
             result[state] = palette[i]
         return result
+    
+def _colorize_default(chart, palette):
+    return numpy.take(palette, chart.data)
+    
+def _colorize_water(chart, palette):
+    data = numpy.cast[numpy.uint8](chart.data)
+    return numpy.take(palette, data)
 
 def default():
-    result = View()
-    result.center = (0,0)
-    result.zoom = 1
-    result.palette = palette.default
-    result.speed = 60
+    result = View(palette=palette.default,
+                  colorize=_colorize_default)
     return result
 
 def water():
-    result = View()
-    result.center = (0,0)
-    result.zoom = 1
-    result.palette = palette.grays
-    result.speed = 60
+    result = View(palette=palette.grays,
+                  colorize=_colorize_water)
     return result
      

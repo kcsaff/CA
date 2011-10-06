@@ -17,9 +17,9 @@
 
 import numpy
 import registry
-import topologies.torus
+import topologies.torus, topologies.rectangle
 import simple
-import rules.water, rules.life, rules.redox
+import rules.water, rules.life, rules.redox, rules.rivers
 
 
 class World(simple.typed_object):
@@ -108,5 +108,11 @@ def default():
 def water():
     result = World()
     result.topology = topologies.torus.torus(640, 480)
-    result.rule = rules.water.dunes()
+    result.rule = rules.water.water()
+    return result
+
+def rivers():
+    result = World()
+    result.topology = topologies.torus.torus(640, 480)
+    result.rule = rules.rivers.rivers()
     return result

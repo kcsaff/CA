@@ -17,6 +17,8 @@
 
 import os, os.path, sys, imp
 import shlex, subprocess
+import hashlib
+import traceback
 
 def __doc_string_for_c(string):
     if string:
@@ -129,21 +131,29 @@ def __save_c(path, #path to directory to save c file under.
     f.close()
     
 def __create_setup(path, module_name):
+    filename = os.path.join(path, __c_filename(module_name)).replace('\\', '\\\\')
     result = """
+from distutils import log
 from distutils.core import setup, Extension
-#raw_input()
+#import logging
+#logging.basicConfig()
+#logging.getLogger().setLevel(logging.DEBUG)
+log.set_threshold(log.DEBUG)
 try:
     setup (name = 'Ex',
            version = '0.1',
            description = 'Yes',
            ext_modules = [Extension('{module_name}', sources=['{filename}'])],
-           include_dirs = ['C:/Python26/Lib/site-packages/numpy/core/include']) 
+           include_dirs = [r'{exec_prefix}/Lib/site-packages/numpy/core/include']) 
 except Exception as e:
-    print 'Oh no!'
+    import traceback
+    print 'Error while compiling extension.'
+    traceback.print_exc()
     #raw_input()
 #raw_input()
     """.format(module_name=module_name,
-               filename=os.path.join(path, __c_filename(module_name)).replace('\\', '\\\\'))
+               exec_prefix=sys.exec_prefix,
+               filename=filename)
     return result
     
 def __save_setup(path,#path to directory to save files under.
@@ -160,7 +170,7 @@ def __build_inplace(path, outpath=None):
     setup = os.path.join(path, 'setup.py')
     output = file(os.path.join(path, 'log.txt'), 'w')
     the_call = '{python} {setup} build_ext --inplace'.format(python=python,
-                                                             setup=setup)
+                                                                       setup=setup)
     the_call = the_call.replace('\\', '/') #hack for windows, shlex removes backslashes
     print the_call
     args = shlex.split(the_call)
@@ -208,32 +218,70 @@ class __to_generate(object):
                 self.docstring,
                 self.definition)
 
-def c(fun):
-    return __to_generate(fun.__name__,
-                         fun.__doc__,
-                         fun())
+_inlined = {}
+
+def __caller_info(up=0):
+    """Get file name, line number, function name and
+    source text of the caller's caller as 4-tuple:
+    (file, line, func, text).
     
-def auto_generate(source_name):
-    #source is expected to be a module name, __name__
-    source = sys.modules[source_name]
-    module_name = '%s_c' % source_name.split('.')[-1]
-    module_doc = source.__doc__
+    The optional argument 'up' allows retrieval of
+    a caller further back up into the call stack.
+    
+    Note, the source text may be None and function
+    name may be '?' in the returned result. In
+    Python 2.3+ the file name may be an absolute
+    path.
+    
+    taken from:
+     - http://bytes.com/topic/python/answers/32712-determining-callers-file-line-number
+    """
+    try: # just get a few frames
+        f = traceback.extract_stack(limit=up+2)
+        if f:
+            return f[0]
+    except:
+        pass
+    # running with psyco?
+    return ('', 0, '', None)    
+    
+def inline(code, path=None, language='c'):
+    """
+    Return a function that will execute the inlined c-code.
+    """
+    if code in _inlined:
+        return _inlined[code]
+    # Name will be a hash of the code, to guarantee uniqueness.
+    module_name = hashlib.md5(code).hexdigest()
+    if module_name in _inlined:
+        _inlined[code] = _inlined[module_name]
+        return _inlined[code]
+    print __caller_info(1)
+    # Get doc of caller if present.
+    try:
+        module_doc = __caller_info(1)[2].__doc__
+    except:
+        module_doc = 'Inlined code.'
+    # Get path of caller, if possible; otherwise use current path.
+    if path is None:
+        path = __caller_info(1)[0] or os.getcwd()
+    
+    module = _do_generate(module_name, module_doc, path, 
+                          [('inlined', module_doc, code)])
+    
+    fun = module.inlined
+    _inlined[code] = _inlined[module_name] = fun
+    return fun
 
-    function_list = []
-    if 'functions' in source.__dict__:
-        function_list = source.functions
-    for value in source.__dict__.values():
-        if isinstance(value, __to_generate):
-            function_list.append(value.unwrap())
-            
-    path = os.path.abspath(os.path.dirname(source.__file__))
-
-    build_path = os.path.join(path, 'build')
+def _do_generate(module_name, module_doc, path, function_list):
+    dir = os.path.dirname(os.path.abspath(path))
+    # Where to put the files.
+    build_path = os.path.join(dir, 'build')
     temp_path = os.path.join(build_path, 'build') #build process makes this dir
     
     try:
         _, found_module, _ = imp.find_module(module_name, [build_path])
-        if os.path.getmtime(found_module) < os.path.getmtime(source.__file__):
+        if os.path.getmtime(found_module) < os.path.getmtime(path):
             os.remove(found_module)
             found_module = None
     except ImportError:
@@ -249,6 +297,7 @@ def auto_generate(source_name):
 
     args = imp.find_module(module_name, [build_path])
     module = imp.load_module(module_name, *args)
+    return module
     for fun in function_list:
         setattr(source, fun[0], getattr(module, fun[0]))
     #setattr(source, module_name, __import__(module_name, source.__dict__))

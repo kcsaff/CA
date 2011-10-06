@@ -32,10 +32,9 @@ Bits 9-15 are the remainder of the state, minus the activity bit.
 
 import generate
 
-@generate.c
-def evolve():
+def evolve(input, output, lookup):
     """Evolve it."""
-    return """
+    return generate.inline("""
     PyArrayObject *input;
     PyArrayObject *output;
     PyArrayObject *lookup;
@@ -85,12 +84,8 @@ def evolve():
         }
     }
     return PyFloat_FromDouble(1.0);
-    """
-             
-
-
-generate.auto_generate(__name__)
-
+    """)(input, output, lookup)
+            
 import numpy
 from _util import bit_count, register
 from _algorithm import algorithm

@@ -32,10 +32,9 @@ Bits 9-16 are the entirety of the state.
 
 import generate
 
-@generate.c
-def evolve():
+def evolve(input, output, lookup):
     """Evolve it."""
-    return """
+    return generate.inline("""
     PyArrayObject *input;
     PyArrayObject *output;
     PyArrayObject *lookup;
@@ -85,12 +84,7 @@ def evolve():
         }
     }
     return PyFloat_FromDouble(1.0);
-    """
-             
-
-
-generate.auto_generate(__name__)
-
+    """)(input, output, lookup)
 
 import numpy
 from _util import bit_count, register

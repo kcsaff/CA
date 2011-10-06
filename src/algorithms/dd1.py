@@ -39,10 +39,9 @@ if it goes above the max.
 
 import generate
 
-@generate.c
-def dd1_evolve():
+def dd1_evolve(input, output, lookup):
     """Evolve it."""
-    return """
+    return generate.inline("""
     PyArrayObject *input;
     PyArrayObject *output;
     PyArrayObject *lookup;
@@ -126,11 +125,7 @@ def dd1_evolve():
         }
     }
     return PyFloat_FromDouble(1.0);
-    """
-             
-
-
-generate.auto_generate(__name__)
+    """)(input, output, lookup)
 
 import numpy
 

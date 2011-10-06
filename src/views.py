@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the CA scanner.  If not, see <http://www.gnu.org/licenses/>.
 
+import generate
 import numpy
 import simple
 
@@ -165,6 +166,11 @@ def _colorize_water(chart, palette):
     data = numpy.cast[numpy.uint8](chart.data)
     return numpy.take(palette, data)
 
+def _colorize_rivers(chart, palette=None):
+    data = numpy.cast[numpy.uint8](chart.data)
+    data = numpy.cast[numpy.uint32](data)
+    return (data[:,:,0] << 8) + (data[:,:,1])
+
 def default():
     result = View(palette=palette.default,
                   colorize=_colorize_default)
@@ -173,5 +179,10 @@ def default():
 def water():
     result = View(palette=palette.grays,
                   colorize=_colorize_water)
+    return result
+
+def rivers():
+    result = View(palette=None,
+                  colorize=_colorize_rivers)
     return result
      

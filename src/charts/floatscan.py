@@ -1,29 +1,33 @@
 from registry import register
 from _chart import chart
 import numpy
-import _bytescan
+import _scantop
     
-def _floatscan_data(x, y):
-    data = numpy.zeros(shape=(x, y), dtype=numpy.float)
-    data[:,:] = numpy.random.rand(*data.shape)
-    data *= 255.9
+def _floatscan_data(x, y, planes=1):
+    if planes <= 1:
+        data = numpy.zeros(shape=(x, y), dtype=numpy.float)
+    else:
+        data = numpy.zeros(shape=(x, y, planes), dtype=numpy.float)
+    data[...] = numpy.random.rand(*data.shape)
     return data
  
 @register('create_chart', type=('floatscan', 'torus'), quality=1.0)
 def _floatscan_torus(alg, top):
     return chart('floatscan',
                  data=_floatscan_data(top.width + 2*alg.margin, 
-                                      top.height + 2*alg.margin),
-                 topology=_bytescan.torus,
+                                      top.height + 2*alg.margin,
+                                      getattr(alg, 'planes', 1)),
+                 topology=_scantop.torus,
                  margin=alg.margin
                  )
  
 @register('create_chart', type=('floatscan', 'torusfall'), quality=1.0)
 def _floatscan_torusfall(alg, top):
-    return chart('multifloatscan',
+    return chart('floatscan',
                  data=_floatscan_data(top.width + 2*alg.margin, 
-                                      top.height + 2*alg.margin),
-                 topology=_bytescan.torusfall(top.fall),
+                                      top.height + 2*alg.margin,
+                                      getattr(alg, 'planes', 1)),
+                 topology=_scantop.torusfall(top.fall),
                  margin=alg.margin
                  )
  
@@ -31,8 +35,9 @@ def _floatscan_torusfall(alg, top):
 def _floatscan_rectangle(alg, top):
     return chart('floatscan',
                  data=_floatscan_data(top.width + 2*alg.margin, 
-                                      top.height + 2*alg.margin),
-                 topology=_bytescan.rectangle,
+                                      top.height + 2*alg.margin,
+                                      getattr(alg, 'planes', 1)),
+                 topology=_scantop.rectangle,
                  margin=alg.margin
                  )
  
@@ -40,8 +45,9 @@ def _floatscan_rectangle(alg, top):
 def _floatscan_projective_plane(alg, top):
     return chart('floatscan',
                  data=_floatscan_data(top.width + 2*alg.margin, 
-                                      top.height + 2*alg.margin),
-                 topology=_bytescan.projective_plane,
+                                      top.height + 2*alg.margin,
+                                      getattr(alg, 'planes', 1)),
+                 topology=_scantop.projective_plane,
                  margin=alg.margin
                  )
  
@@ -49,7 +55,7 @@ def _floatscan_projective_plane(alg, top):
 def _floatscan_to_torus(c, top):
     return chart('floatscan',
                  data=c.data,
-                 topology=_bytescan.torus,
+                 topology=_scantop.torus,
                  margin=c.margin
                  )
  
@@ -57,7 +63,7 @@ def _floatscan_to_torus(c, top):
 def _floatscan_to_rectangle(c, top):
     return chart('floatscan',
                  data=c.data,
-                 topology=_bytescan.rectangle,
+                 topology=_scantop.rectangle,
                  margin=c.margin
                  )
  
@@ -65,7 +71,7 @@ def _floatscan_to_rectangle(c, top):
 def _floatscan_to_projective_plane(c, top):
     return chart('floatscan',
                  data=c.data,
-                 topology=_bytescan.projective_plane,
+                 topology=_scantop.projective_plane,
                  margin=c.margin
                  )
 

@@ -1,7 +1,7 @@
 from registry import register
 from _chart import chart
 import numpy
-import _bytescan
+import _scantop
     
 def _bytescan_data(x, y):
     data = numpy.zeros(shape=(x, y), dtype=numpy.uint8)
@@ -13,7 +13,7 @@ def _bytescan_torus(alg, top):
     return chart('bytescan',
                  data=_bytescan_data(top.width + 2*alg.margin, 
                                      top.height + 2*alg.margin),
-                 topology=_bytescan.torus,
+                 topology=_scantop.torus,
                  margin=alg.margin
                  )
  
@@ -22,7 +22,7 @@ def _bytescan_rectangle(alg, top):
     return chart('bytescan',
                  data=_bytescan_data(top.width + 2*alg.margin, 
                                      top.height + 2*alg.margin),
-                 topology=_bytescan.rectangle,
+                 topology=_scantop.rectangle,
                  margin=alg.margin
                  )
  
@@ -31,7 +31,7 @@ def _bytescan_projective_plane(alg, top):
     return chart('bytescan',
                  data=_bytescan_data(top.width + 2*alg.margin, 
                                      top.height + 2*alg.margin),
-                 topology=_bytescan.projective_plane,
+                 topology=_scantop.projective_plane,
                  margin=alg.margin
                  )
  
@@ -39,7 +39,7 @@ def _bytescan_projective_plane(alg, top):
 def _bytescan_to_torus(c, top):
     return chart('bytescan',
                  data=c.data,
-                 topology=_bytescan.torus,
+                 topology=_scantop.torus,
                  margin=c.margin
                  )
  
@@ -47,7 +47,7 @@ def _bytescan_to_torus(c, top):
 def _bytescan_to_rectangle(c, top):
     return chart('bytescan',
                  data=c.data,
-                 topology=_bytescan.rectangle,
+                 topology=_scantop.rectangle,
                  margin=c.margin
                  )
  
@@ -55,7 +55,7 @@ def _bytescan_to_rectangle(c, top):
 def _bytescan_to_projective_plane(c, top):
     return chart('bytescan',
                  data=c.data,
-                 topology=_bytescan.projective_plane,
+                 topology=_scantop.projective_plane,
                  margin=c.margin
                  )
 

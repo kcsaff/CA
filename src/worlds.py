@@ -107,7 +107,7 @@ def default():
   
 def water():
     result = World()
-    result.topology = topologies.torus.torus(640, 480)
+    result.topology = topologies.rectangle.rectangle(640, 480)
     result.rule = rules.water.water()
     return result
 

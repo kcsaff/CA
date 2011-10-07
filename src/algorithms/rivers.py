@@ -43,10 +43,22 @@ def rivers_evolve(input, output, lookup):
     """Evolve it."""
     return generate.inline("""
     
-#define ABS(X) ((X < 0 ? -X : +X))
-#define INF 0.5
-#define OUTF 0.2
-#define STATF 0.3
+#define ABS(X) ((X) < 0 ? -(X) : +(X))
+#define POS(X) ((X) > 0 ? (X) : 0)
+#define NEG(X) ((X) < 0 ? (X) : 0)
+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
+#define VS 0.0001
+#define WS 0.1
+#define WIN(V0, W0, V1, W1) (POS(MIN((W1), ((V1)+(W1))-((V0)+(W0)) )))
+#define WOUT(V0, W0, V1, W1) (WIN((V1), (W1), (V0), (W0)))
+#define THRESH 0.2
+// These define soil/water when we transform
+#define TRANSERODE 1.0
+#define TRANSDEPOSIT 1.0
+// These define rate of erosion/deposition per velocity unit
+#define RATEERODE 0.1
+#define RATEDEPOSIT 0.01
     
     PyArrayObject *input;
     PyArrayObject *output;
@@ -58,11 +70,10 @@ def rivers_evolve(input, output, lookup):
 
     double *ind, *oud, *look;
     
-    double v00, vX, vY;
-    double vXa, vX1, vYa, vY1;
-    double va0, v10, v0a, v01;
-    double d00, dX, dY;
-    double temp, accum;
+    double v00, va0, v10, v0a, v01;
+    double w00, wa0, w10, w0a, w01;
+    double win, wout;
+    double wvel, Dw, Dv;
 
     if (!PyArg_ParseTuple(args, "O!O!O!",
             &PyArray_Type, &input,
@@ -91,46 +102,55 @@ def rivers_evolve(input, output, lookup):
             ya = y0 - ystride;
             y1 = y0 + ystride;
             
-            d00 = dX = dY = 0;
-            
-            // v00 is stationary, vX is X-motion, vY is Y-motion
+            // v00 is sediment, w00 is water.
             v00 = ind[x0 + y0 + 0*zstride];
-            vX = ind[x0 + y0 + 1*zstride];
-            vY = ind[x0 + y0 + 2*zstride];
-            
             va0 = ind[xa + y0 + 0*zstride];
             v10 = ind[x1 + y0 + 0*zstride];
             v0a = ind[x0 + ya + 0*zstride];
             v01 = ind[x0 + y1 + 0*zstride];
             
-            vXa = ind[xa + y0 + 1*zstride];
-            vX1 = ind[x1 + y0 + 1*zstride];
-            vYa = ind[x0 + ya + 2*zstride];
-            vY1 = ind[x0 + y1 + 2*zstride];
+            w00 = ind[x0 + y0 + 1*zstride];
+            wa0 = ind[xa + y0 + 1*zstride];
+            w10 = ind[x1 + y0 + 1*zstride];
+            w0a = ind[x0 + ya + 1*zstride];
+            w01 = ind[x0 + y1 + 1*zstride];
             
-            // Determine new total water level.
+            // Determine water flow in.
             
-            d00 = v00 + INF * (vXa - vX1 + vYa - vY1);
+            win = 0;
+            win += WIN(v00, w00, va0, wa0);
+            win += WIN(v00, w00, v10, w10);
+            win += WIN(v00, w00, v0a, w0a);
+            win += WIN(v00, w00, v01, w01);
+            win *= WS;
             
-            // Determine new X flow.
+            // Determine water flow out.
             
-            dX = OUTF * (vXa + vX + vX1) + STATF * (va0 - v10);
+            wout = 0;
+            wout += WOUT(v00, w00, va0, wa0);
+            wout += WOUT(v00, w00, v10, w10);
+            wout += WOUT(v00, w00, v0a, w0a);
+            wout += WOUT(v00, w00, v01, w01);
+            wout *= WS;
             
-            // Determine new Y flow.
+            w00 = POS(w00 + win - wout);
             
-            dY = OUTF * (vYa + vY + vY1) + STATF * (v0a - v01);
-            
-            // Cap outward flow.
-            
-            temp = ABS(dX) + ABS(dY);
-            if (temp > d00) {
-                dX *= (ABS(dX) / temp);
-                dY *= (ABS(dY) / temp);
+            Dw = Dv = 0;
+            // Determine water velocity.
+            if (w00 > 0) {
+                wvel = win / w00;
+                // Perform erosion.
+                if (wvel > THRESH) { // Erosion
+                    Dw = (wvel - THRESH) * RATEERODE;
+                    Dv = -Dw * TRANSERODE;
+                } else { // Deposition
+                    Dw = -MIN(w00, (THRESH - wvel) * RATEDEPOSIT);
+                    Dv = -Dw * TRANSDEPOSIT;
+                }
             }
             
-            oud[x0 + y0 + 0*zstride] = d00;
-            oud[x0 + y0 + 1*zstride] = dX;
-            oud[x0 + y0 + 2*zstride] = dY;
+            oud[x0 + y0 + 0*zstride] = v00 + Dv;
+            oud[x0 + y0 + 1*zstride] = w00 + Dw;
         }
     }
     return PyFloat_FromDouble(1.0);

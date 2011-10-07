@@ -53,6 +53,9 @@ def __handle_pygame(pygame, event):
         __events.put(Event(event.unicode))
     elif event.type is pygame.QUIT:
         __events.put(Event('Quit'))
+    elif event.type is pygame.USEREVENT and event.code == 'MENU':
+        print event.name, event.item_id, event.text
+        __events.put(Event(e.name))
     else:
         __events.put(Event('Unknown'))
 

@@ -28,6 +28,11 @@ class simple_displayer(object):
         
     def __call__(self, *args):
         self.display(*args)          
+        
+MENU = (
+    'Help',
+    'Quit',
+        )
             
 class scrollable_displayer(object):
 
@@ -35,7 +40,8 @@ class scrollable_displayer(object):
         self.screen = pygame.display.set_mode((800,800), pygame.DOUBLEBUF | pygame.HWSURFACE)
         self.size = self.screen.get_size()
         self.pixels = surfarray.pixels2d(self.screen)
-
+        from gamelib.popup_menu import NonBlockingPopupMenu
+        self.menu = NonBlockingPopupMenu(MENU)
         
     def display(self, world, view):
         self.do_display(self.pixels, view, world.charts[0])

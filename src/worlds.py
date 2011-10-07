@@ -113,6 +113,7 @@ def water():
 
 def rivers():
     result = World()
-    result.topology = topologies.torus.fall(640, 480, fall=100)
+#    result.topology = topologies.torus.fall(640, 480, fall=100)
+    result.topology = topologies.torus.torus(640, 480)
     result.rule = rules.rivers.rivers()
     return result

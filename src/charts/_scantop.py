@@ -28,17 +28,17 @@ class torus(object):
         if margin == 1: #optimization
             return torus.stitch_1(array, margin)
     
-        array[-margin:,:] = array[margin:margin * 2,:]
-        array[:margin,:] = array[-margin * 2:-margin,:]
-        array[:,-margin:] = array[:,margin:margin * 2]
-        array[:,:margin] = array[:,-margin * 2:-margin]
+        array[-margin:,...] = array[margin:margin * 2,...]
+        array[:margin,...] = array[-margin * 2:-margin,...]
+        array[:,-margin:,...] = array[:,margin:margin * 2,...]
+        array[:,:margin,...] = array[:,-margin * 2:-margin,...]
 
     @staticmethod
     def stitch_1(array, margin = 1):
-        array[-1,:] = array[1,:]
-        array[0,:] = array[-2,:]
-        array[:,-1] = array[:,1]
-        array[:,0] = array[:,-2]
+        array[-1,:,...] = array[1,:,...]
+        array[0,:,...] = array[-2,:,...]
+        array[:,-1,...] = array[:,1,...]
+        array[:,0,...] = array[:,-2,...]
 
     @staticmethod
     def map_point(point, array, margin = 1):

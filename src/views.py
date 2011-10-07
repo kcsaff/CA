@@ -162,18 +162,48 @@ class palette(object):
 def _colorize_default(chart, palette):
     return numpy.take(palette, chart.data)
     
-def _colorize_water(chart, palette):
-    top = numpy.max(chart.data)
-    bot = numpy.min(chart.data)
+def _colorize_gradient(chart, palette):
+    mean = numpy.mean(chart.data)
+    std = numpy.std(chart.data)
+    #top = numpy.max(chart.data)
+    #bot = numpy.min(chart.data)
+    top = mean + std * 2
+    bot = mean - std * 2
     data = (chart.data - bot) * 255.9 / (top - bot)
-    data = numpy.cast[numpy.uint8](data)
+    data = numpy.cast[numpy.int16](data)
 #    data = numpy.cast[numpy.uint8](chart.data)
-    return numpy.take(palette, data)
+    return numpy.take(palette, data, mode='clip')
+    
+def _colorize_specular(chart, palette):
+    data = chart.data
+    data = data[1:,1:] - data[:-1,:-1]
+    
+    mean = numpy.mean(data[1:-1,1:-1])
+    std = numpy.std(data[1:-1,1:-1])
+    #top = numpy.max(chart.data)
+    #bot = numpy.min(chart.data)
+    top = mean + std * 2
+    bot = mean - std * 2
+    data = (data - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.int16](data)
+#    data = numpy.cast[numpy.uint8](chart.data)
+    return numpy.take(palette, data, mode='clip')
 
 def _colorize_rivers(chart, palette=None):
-    data = numpy.cast[numpy.uint8](chart.data)
-    data = numpy.cast[numpy.uint32](data)
-    return (data[:,:,0] << 8) + (data[:,:,1])
+#    data = numpy.cast[numpy.uint8](chart.data)
+#    data = numpy.cast[numpy.uint32](data)
+#    return (data[:,:,0] << 8) + (data[:,:,1])
+    top = numpy.max(chart.data[:,:,0])
+    bot = numpy.min(chart.data[:,:,0])
+    data = (chart.data[:,:,0] - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.int16](data)
+#    print top, bot
+#    top = numpy.max(data)
+#    bot = numpy.min(data)
+#    print top, bot
+#    print palette
+#    data = numpy.cast[numpy.uint8](chart.data)
+    return numpy.take(palette, data, mode='clip')
 
 def default():
     result = View(palette=palette.default,
@@ -182,11 +212,11 @@ def default():
 
 def water():
     result = View(palette=palette.grays,
-                  colorize=_colorize_water)
+                  colorize=_colorize_specular)
     return result
 
 def rivers():
-    result = View(palette=None,
+    result = View(palette=palette.grays,
                   colorize=_colorize_rivers)
     return result
      

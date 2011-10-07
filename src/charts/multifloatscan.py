@@ -7,7 +7,6 @@ def _multifloatscan_data(width, height, planes):
     data = numpy.zeros(shape=(width, height, planes), dtype=numpy.float)
     data[:,:,:] = numpy.random.rand(*data.shape)
     data *= 255.9
-    data[:,:,1] *= 0.1
     return data
  
 @register('create_chart', type=('multifloatscan', 'torus'), quality=1.0)

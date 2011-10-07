@@ -107,8 +107,8 @@ def default():
   
 def water():
     result = World()
-    result.topology = topologies.torus.fall(640, 480, fall=200)
-    result.rule = rules.water.mean()
+    result.topology = topologies.torus.torus(640, 480)
+    result.rule = rules.water.water()
     return result
 
 def rivers():

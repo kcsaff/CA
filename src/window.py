@@ -87,7 +87,7 @@ def create(options, args, lib):
 
     window = Window()
     
-    window.world, window.view = worlds.rivers(), views.rivers()
+    window.world, window.view = worlds.water(), views.water()
     
     window.lib = lib
     

@@ -18,6 +18,15 @@ def _floatscan_torus(alg, top):
                  margin=alg.margin
                  )
  
+@register('create_chart', type=('floatscan', 'torusfall'), quality=1.0)
+def _floatscan_torusfall(alg, top):
+    return chart('multifloatscan',
+                 data=_floatscan_data(top.width + 2*alg.margin, 
+                                      top.height + 2*alg.margin),
+                 topology=_bytescan.torusfall(top.fall),
+                 margin=alg.margin
+                 )
+ 
 @register('create_chart', type=('floatscan', 'rectangle'), quality=1.0)
 def _floatscan_rectangle(alg, top):
     return chart('floatscan',

@@ -22,10 +22,27 @@ def water(moore=[0.0, 0.5, 0.0,
                  0.5, 0.0, 0.5,
                  0.0, 0.5, 0.0],
           history = -1.0,
-          damping = 0.001,
+          damping = 0.005,
           heat = 0,
           min = 0.0, max = 255.9,
           under = 0.0, over = 255.9
+          ):
+    return rule('water',
+                moore=moore,
+                history=history,
+                damping=damping,
+                heat=heat,
+                min=min, max=max,
+                under=under, over=over)
+
+def mean(moore=[0.125, 0.125, 0.125,
+                0.125, 0.125, 0.125,
+                0.125, 0.125, 0.125],
+          history = 0.0,
+          damping = 0.0,
+          heat = 0,
+          min = -1000, max = +1000,
+          under = -1000, over = +1000
           ):
     return rule('water',
                 moore=moore,

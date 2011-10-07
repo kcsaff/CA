@@ -21,3 +21,8 @@ def torus(width, height):
     return topology('torus',
                     width=width,
                     height=height)
+def fall(width, height, fall):
+    return topology('torusfall',
+                    width=width,
+                    height=height,
+                    fall=fall)

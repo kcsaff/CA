@@ -19,7 +19,7 @@ import numpy
 
 class torus(object):
     @staticmethod
-    def stitch(array, margin = 1):
+    def stitch(array, margin=1):
         if isinstance(array, list):
             for chart in array:
                 torus.stitch(chart, margin)
@@ -52,6 +52,18 @@ class torus(object):
                   array.shape[1] - margin*2)
         return array[x0:x1, y0:y1]
     
+def torusfall(fall):
+    class torusfall(torus):
+        @staticmethod
+        def stitch(array, margin=1):
+            if isinstance(array, list):
+                for chart in array:
+                    torusfall.stitch(chart, margin)
+                return
+            torus.stitch(array, margin)
+            array[:,:margin] += fall
+            array[:,-margin:] -= fall
+    return torusfall
 
 class rectangle(object):
     @staticmethod

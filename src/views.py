@@ -163,7 +163,11 @@ def _colorize_default(chart, palette):
     return numpy.take(palette, chart.data)
     
 def _colorize_water(chart, palette):
-    data = numpy.cast[numpy.uint8](chart.data)
+    top = numpy.max(chart.data)
+    bot = numpy.min(chart.data)
+    data = (chart.data - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.uint8](data)
+#    data = numpy.cast[numpy.uint8](chart.data)
     return numpy.take(palette, data)
 
 def _colorize_rivers(chart, palette=None):

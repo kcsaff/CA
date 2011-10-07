@@ -5,8 +5,9 @@ import _bytescan
     
 def _multifloatscan_data(width, height, planes):
     data = numpy.zeros(shape=(width, height, planes), dtype=numpy.float)
-    data[:,:] = numpy.random.rand(*data.shape)
+    data[:,:,:] = numpy.random.rand(*data.shape)
     data *= 255.9
+    data[:,:,1] *= 0.1
     return data
  
 @register('create_chart', type=('multifloatscan', 'torus'), quality=1.0)
@@ -16,6 +17,16 @@ def _multifloatscan_torus(alg, top):
                                            top.height + 2*alg.margin,
                                            alg.planes),
                  topology=_bytescan.torus,
+                 margin=alg.margin
+                 )
+ 
+@register('create_chart', type=('multifloatscan', 'torusfall'), quality=1.0)
+def _multifloatscan_torusfall(alg, top):
+    return chart('multifloatscan',
+                 data=_multifloatscan_data(top.width + 2*alg.margin, 
+                                           top.height + 2*alg.margin,
+                                           alg.planes),
+                 topology=_bytescan.torusfall(top.fall),
                  margin=alg.margin
                  )
  

@@ -48,8 +48,8 @@ def rivers_evolve(input, output, lookup):
 #define NEG(X) ((X) < 0 ? (X) : 0)
 #define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
-#define VS 0.0001
-#define WS 0.1
+#define VS 0.001
+#define WS 0.2
 #define WIN(V0, W0, V1, W1) (POS(MIN((W1), ((V1)+(W1))-((V0)+(W0)) )))
 #define WOUT(V0, W0, V1, W1) (WIN((V1), (W1), (V0), (W0)))
 #define THRESH 0.2
@@ -57,8 +57,8 @@ def rivers_evolve(input, output, lookup):
 #define TRANSERODE 1.0
 #define TRANSDEPOSIT 1.0
 // These define rate of erosion/deposition per velocity unit
-#define RATEERODE 0.1
-#define RATEDEPOSIT 0.01
+#define RATEERODE 0.01
+#define RATEDEPOSIT 0.001
     
     PyArrayObject *input;
     PyArrayObject *output;
@@ -148,6 +148,12 @@ def rivers_evolve(input, output, lookup):
                     Dv = -Dw * TRANSDEPOSIT;
                 }
             }
+            
+            // Determine sediment shift.
+            
+            Dv += VS * (va0 + v10 + v0a + v01 - 4 * v00);
+            
+            // Write results.
             
             oud[x0 + y0 + 0*zstride] = v00 + Dv;
             oud[x0 + y0 + 1*zstride] = w00 + Dw;

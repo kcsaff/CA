@@ -87,7 +87,10 @@ def create(options, args, lib):
 
     window = Window()
     
-    window.world, window.view = worlds.rivers(), views.rivers()
+    window.world, window.view = worlds.schroedinger(), views.schroedinger()
+    
+    assert window.world
+    assert window.view
     
     window.lib = lib
     

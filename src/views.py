@@ -129,6 +129,35 @@ def _to_rgb(color):
 def _from_rgb(color):
     return (color[0] << 16) | (color[1] << 8) | (color[2] << 0)
 
+def _complex0():
+    result = []
+    for i in range(256):
+        result.extend(_gradient(85, i << 16, i << 8))
+        result.extend(_gradient(85, i << 8, i << 0))
+        result.extend(_gradient(86, i << 0, i << 16))
+    return result
+
+def _complex1():
+    result = []
+    for i in range(128):
+        j = 2*i
+        result.extend(_gradient(85, j << 16, j << 8))
+        result.extend(_gradient(85, j << 8, i << 0))
+        result.extend(_gradient(86, j << 0, j << 16))
+    for i in range(128):
+        j = 2*i
+        result.extend(_gradient(85, 
+                                0xFF << 16 | j << 8 | j, 
+                                j << 16 | 0xFF << 8 | j))
+        result.extend(_gradient(85, 
+                                j << 16 | 0xFF << 8 | j, 
+                                j << 16 | j << 8 | 0xFF))
+        result.extend(_gradient(86, 
+                                j << 16 | j << 8 | 0xFF, 
+                                0xFF << 16 | j << 8 | j))
+    return result
+    
+
 class palette(object):
     default = (0, 0xFFFFFF, 0xFF0000, 0, 0xCC9900)
     
@@ -138,6 +167,12 @@ class palette(object):
            0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF)
 
     grays = _gradient(256, 0x000000, 0xFFFFFF)
+    
+    cyclic = ( _gradient(85, 0xFF0000, 0x00FF00)
+             + _gradient(85, 0x00FF00, 0x0000FF)
+             + _gradient(86, 0x0000FF, 0xFF0000))
+    
+    complex = _complex1()
 
     @staticmethod
     def to_rgb(palette):
@@ -193,20 +228,97 @@ def _colorize_rivers(chart, palette=None):
 #    data = numpy.cast[numpy.uint8](chart.data)
 #    data = numpy.cast[numpy.uint32](data)
 #    return (data[:,:,0] << 8) + (data[:,:,1])
-    wtop = numpy.max(chart.data[1:-1,1:-1,1])
-    wbot = numpy.min(chart.data[1:-1,1:-1,1])
-    wdata = (chart.data[1:-1,1:-1,1] - wbot) * 255.9 / (wtop - wbot)
-    vtop = numpy.max(chart.data[1:-1,1:-1,0])
-    vbot = numpy.min(chart.data[1:-1,1:-1,0])
-    vdata = (chart.data[1:-1,1:-1,0] - vbot) * 255.9 / (vtop - vbot)
-    #return numpy.cast[numpy.uint8](vdata)
-    return (numpy.cast[numpy.uint16](vdata)) << 8 + numpy.cast[numpy.uint8](wdata)
+    wtop = numpy.max(chart.data[:,:, 1])
+    wbot = numpy.min(chart.data[:,:, 1])
+    wdata = (chart.data[:,:, 1] - wbot) * 255.9 / (wtop - wbot)
+    vtop = numpy.max(chart.data[:,:, 0])
+    vbot = numpy.min(chart.data[:,:, 0])
+    vdata = (chart.data[:,:, 0] - vbot) * 255.9 / (vtop - vbot)
+#    return numpy.take(palette, numpy.cast[numpy.uint8](vdata), mode='clip')
+#    return numpy.cast[numpy.uint8](vdata)
+    return (numpy.cast[numpy.uint16](vdata) << 8) + numpy.cast[numpy.uint8](wdata)
 #    print top, bot
 #    top = numpy.max(data)
 #    bot = numpy.min(data)
 #    print top, bot
 #    print palette
 #    data = numpy.cast[numpy.uint8](chart.data)
+    return numpy.take(palette, data, mode='clip')
+
+def _colorize_rivers2(chart, palette=None):
+    vmean = numpy.mean(chart.data[:,:, 0])
+    vstd = numpy.std(chart.data[:,:, 0])
+    #top = numpy.max(chart.data)
+    #bot = numpy.min(chart.data)
+    vtop = vmean + vstd * 2
+    vbot = vmean - vstd * 2
+#    data = numpy.cast[numpy.uint8](chart.data)
+#    data = numpy.cast[numpy.uint32](data)
+#    return (data[:,:,0] << 8) + (data[:,:,1])
+    wtop = numpy.max(chart.data[1:-1,1:-1, 1])
+    wbot = numpy.min(chart.data[1:-1,1:-1, 1])
+    wdata = (chart.data[1:-1,1:-1, 1] - wbot) * 255.9 / (wtop - wbot)
+    #vtop = numpy.max(chart.data[1:-1,1:-1, 0])
+    #vbot = numpy.min(chart.data[1:-1,1:-1, 0])
+    vdata = (chart.data[1:-1,1:-1, 0] - vbot) * 255.9 / (vtop - vbot)
+#    return numpy.take(palette, numpy.cast[numpy.uint8](vdata), mode='clip')
+    return numpy.cast[numpy.uint8](vdata)
+    return (numpy.cast[numpy.uint16](vdata) << 8) + numpy.cast[numpy.uint8](wdata)
+#    print top, bot
+#    top = numpy.max(data)
+#    bot = numpy.min(data)
+#    print top, bot
+#    print palette
+#    data = numpy.cast[numpy.uint8](chart.data)
+    return numpy.take(palette, data, mode='clip')
+
+def _colorize_real(chart, palette=None):
+    data = numpy.real(chart.data[:,:,0])
+    mean = 0 #numpy.mean(data[1:-1,1:-1])
+    std = numpy.std(data[1:-1,1:-1])
+    top = mean + std 
+    bot = mean - std 
+    data = (data - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.int16](data)
+    return numpy.take(palette, data, mode='clip')
+
+def _colorize_imag(chart, palette=None):
+    data = numpy.imag(chart.data[:,:,0])
+    mean = 0 #numpy.mean(data[1:-1,1:-1])
+    std = numpy.std(data[1:-1,1:-1])
+    top = mean + std 
+    bot = mean - std 
+    data = (data - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.int16](data)
+    return numpy.take(palette, data, mode='clip')
+
+def _colorize_abs(chart, palette=None):
+    data = numpy.abs(chart.data[:,:,0])
+    bot = 0 
+    top = numpy.max(data[1:-1,1:-1])
+    data = (data - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.int16](data)
+    return numpy.take(palette, data, mode='clip')
+
+def _colorize_phase(chart, palette=None):
+    data = numpy.angle(chart.data[:,:,0])
+    bot = 0 
+    top = numpy.max(data[1:-1,1:-1])
+    data = (data - bot) * 255.9 / (top - bot)
+    data = numpy.cast[numpy.int16](data)
+    return numpy.take(palette, data, mode='clip')
+
+def _colorize_complex(chart, palette=None):
+    rdata = numpy.abs(chart.data[:,:,0])
+    idata = numpy.angle(chart.data[:,:,0])
+    rbot = numpy.min(rdata)
+    rtop = numpy.max(rdata)
+    ibot = numpy.min(idata)
+    itop = numpy.max(idata)
+    print rtop, itop
+    rdata = (chart.data[1:-1,1:-1, 0] - rbot) * 255.9 / (rtop - rbot)
+    idata = (chart.data[1:-1,1:-1, 0] - ibot) * 255.9 / (itop - ibot)
+    data = (numpy.cast[numpy.uint16](rdata) << 8) + numpy.cast[numpy.uint16](idata)
     return numpy.take(palette, data, mode='clip')
 
 def default():
@@ -221,6 +333,11 @@ def water():
 
 def rivers():
     result = View(palette=palette.grays,
-                  colorize=_colorize_rivers)
+                  colorize=_colorize_rivers2)
     return result
      
+def schroedinger():
+    result = View(palette=palette.grays,
+                  colorize=_colorize_abs)
+    return result
+    

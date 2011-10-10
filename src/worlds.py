@@ -19,7 +19,7 @@ import numpy
 import registry
 import topologies.torus, topologies.rectangle
 import simple
-import rules.water, rules.life, rules.redox, rules.rivers
+import rules.water, rules.life, rules.redox, rules.rivers, rules.complex
 
 
 class World(simple.typed_object):
@@ -116,4 +116,10 @@ def rivers():
 #    result.topology = topologies.torus.fall(640, 480, fall=100)
     result.topology = topologies.torus.torus(640, 480)
     result.rule = rules.rivers.rivers()
+    return result
+
+def schroedinger():
+    result = World()
+    result.topology = topologies.torus.torus(640, 480)
+    result.rule = rules.complex.schroedinger()
     return result

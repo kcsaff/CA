@@ -156,6 +156,17 @@ def _complex1():
                                 j << 16 | j << 8 | 0xFF, 
                                 0xFF << 16 | j << 8 | j))
     return result
+
+def _complex2():
+    result = []
+    for i in range(256):
+        result.extend(_gradient(42, i << 16, i << 16 | i << 8))
+        result.extend(_gradient(43, i << 16 | i << 8, i << 8))
+        result.extend(_gradient(43, i << 8, i << 8 | i))
+        result.extend(_gradient(42, i << 8 | i << 0, i << 0))
+        result.extend(_gradient(43, i << 0, i << 0 | i << 16))
+        result.extend(_gradient(43, i << 0 | i << 16, i << 16))
+    return result
     
 
 class palette(object):
@@ -172,7 +183,7 @@ class palette(object):
              + _gradient(85, 0x00FF00, 0x0000FF)
              + _gradient(86, 0x0000FF, 0xFF0000))
     
-    complex = _complex1()
+    complex = _complex2()
 
     @staticmethod
     def to_rgb(palette):
@@ -316,8 +327,8 @@ def _colorize_complex(chart, palette=None):
     ibot = numpy.min(idata)
     itop = numpy.max(idata)
     print rtop, itop
-    rdata = (chart.data[1:-1,1:-1, 0] - rbot) * 255.9 / (rtop - rbot)
-    idata = (chart.data[1:-1,1:-1, 0] - ibot) * 255.9 / (itop - ibot)
+    rdata = (rdata - rbot) * 255.9 / (rtop - rbot)
+    idata = (idata - ibot) * 255.9 / (itop - ibot)
     data = (numpy.cast[numpy.uint16](rdata) << 8) + numpy.cast[numpy.uint16](idata)
     return numpy.take(palette, data, mode='clip')
 
@@ -337,7 +348,7 @@ def rivers():
     return result
      
 def schroedinger():
-    result = View(palette=palette.grays,
-                  colorize=_colorize_abs)
+    result = View(palette=palette.complex,
+                  colorize=_colorize_complex)
     return result
     

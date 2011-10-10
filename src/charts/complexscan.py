@@ -8,7 +8,7 @@ def _complexscan_data(x, y, planes=1):
         data = numpy.zeros(shape=(x, y), dtype=numpy.complex)
     else:
         data = numpy.zeros(shape=(x, y, planes), dtype=numpy.complex)
-    data[...] = numpy.random.rand(*data.shape)
+    data[...] = numpy.random.rand(*data.shape) + numpy.random.rand(*data.shape) * 1j
     data[:,:,1:] = numpy.zeros(shape=(x, y, planes-1), dtype=numpy.complex)
     return data
  

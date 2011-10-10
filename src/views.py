@@ -326,7 +326,6 @@ def _colorize_complex(chart, palette=None):
     rtop = numpy.max(rdata)
     ibot = numpy.min(idata)
     itop = numpy.max(idata)
-    print rtop, itop
     rdata = (rdata - rbot) * 255.9 / (rtop - rbot)
     idata = (idata - ibot) * 255.9 / (itop - ibot)
     data = (numpy.cast[numpy.uint16](rdata) << 8) + numpy.cast[numpy.uint16](idata)

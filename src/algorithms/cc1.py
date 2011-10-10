@@ -53,6 +53,7 @@ def cc1_evolve(input, output, lookup):
     output[:,:,1] = input[:,:,1]
     M = numpy.max(numpy.abs(output[:,:,0]))
     if M > 10:
+        #M = numpy.sum(numpy.square(numpy.abs(output[:,:,0])))
         print 'rescaling %s' % M
         output[:,:,0] /= M
     else:

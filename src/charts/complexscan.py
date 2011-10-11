@@ -11,6 +11,11 @@ def _complexscan_data(x, y, planes=1):
     data[...] = numpy.random.rand(*data.shape) + numpy.random.rand(*data.shape) * 1j 
     data[...] -= (.5 + .5j)
     data[:,:,1:] = numpy.zeros(shape=(x, y, planes-1), dtype=numpy.complex)
+    # Create square "Well".
+    #data[:,:,1:] = 1
+    #data[100:200, 100:200, 1] = 0
+    #data[:,:,1:] = numpy.real(data[:,:,1:])
+    #data[:,:,1:] -= numpy.min(data[:,:,1:])
     return data
  
 @register('create_chart', type=('complexscan', 'torus'), quality=1.0)

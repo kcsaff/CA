@@ -121,5 +121,5 @@ def rivers():
 def schroedinger():
     result = World()
     result.topology = topologies.torus.torus(640, 480)
-    result.rule = rules.complex.schroedingerAD()
+    result.rule = rules.complex.schroedinger()
     return result

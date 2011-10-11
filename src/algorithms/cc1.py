@@ -49,7 +49,11 @@ def cc1_evolve(input, output, lookup):
     for i, (y,x) in enumerate( itertools.product((-1,0,1), (-1,0,1)) ):
         if lookup[i]:
             output[+1:-1,+1:-1,0] += input[x+1:X+x-1,y+1:Y+y-1,0] * lookup[i]
-    output[1:-1,1:-1,0] += lookup[10] * input[1:-1,1:-1,1]
+    if lookup[10]:
+        output[:,:,0] += lookup[10] * input[:,:,1]
+    if lookup[11]:
+        denom = lookup[11]
+        output[:,:,0] *= denom / (input[:,:,1] + denom)
     output[:,:,1] = input[:,:,1]
     M = numpy.max(numpy.abs(output[:,:,0]))
     if M > 10:
@@ -157,6 +161,7 @@ def _complex(X):
     lookup = list(X.moore)
     lookup.append(X.history)
     lookup.append(X.potential)
+    lookup.append(X.denom)
     return algorithm('complexscan', 
                      evolve=cc1_evolve,
                      table=numpy.asarray(lookup, dtype = numpy.complex128),

@@ -56,6 +56,7 @@ def cc1_evolve(input, output, lookup):
         #M = numpy.sum(numpy.square(numpy.abs(output[:,:,0])))
         print 'rescaling %s' % M
         output[:,:,0] /= M
+        input[:,:,0] /= M
     else:
         print '.'
     return
